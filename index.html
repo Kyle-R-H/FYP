@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>FYP Project 22343261</title>
+</head>
+
+<body>
+    <h1>
+        Real-time Interactive Music Score Tracking Using Live Microphone Input
+    </h1>
+    <hr />
+
+    <div style="display: flex; 
+                gap: 10%; 
+                align-items: flex-start;
+                padding-bottom: 1%;">
+
+        <!--^ Upload Score and Temp Audio -->
+        <div id="scoreAudioInputs">
+            <h3>Score Input</h3>
+            <input title="Score Input" id="scoreInput" type="file"
+                accept=".musicxml, .mxl, .pdf, .png, .jpeg, .mid, .midi" />
+
+            <!-- TODO: Add audio input file types -->
+            <!-- <input title="Audio Input" id="audioInput" type="file" accept=".wav, .mp4" /> -->
+        </div>
+
+        <div id="scoreButtons">
+            <h3>Score Control Buttons</h3>
+            <!-- <button id="showHide">show/hide</button> -->
+            <button id="reset">Reset</button>
+            <button id="next">Next</button>
+            <button id="prev">Prev</button>
+        </div>
+
+    </div>
+
+    <hr>
+
+    <div style="display: flex; 
+                gap: 10%; 
+                align-items: flex-start;
+                padding-bottom: 1%;">
+
+        <div id="audioButtons">
+            <h3>Current Audio</h3>
+            <button id="audioStart">Start</button>
+            <button id="audioStop">Stop</button>
+            <!-- <button id="start">Start</button> -->
+        </div>
+        
+        <!-- <div id="audio_visual">
+        </div> -->
+    </div>
+    
+    <hr />
+    
+    <h3>OpenSheetMusicDisplay Score View</h3>
+    <div id="OSMD">
+    </div>
+    
+    <!-- OpenSheetMusicDisplay Online import as I couldnt get the offline to work using npm nor manual import -->
+    <script src="https://cdn.jsdelivr.net/npm/opensheetmusicdisplay/build/opensheetmusicdisplay.min.js"></script>
+    
+    <!-- Display the OSMD score -->
+    <script type="module" src="/osmd.js"></script>
+    
+    <!-- Audio Control -->
+    <script src="https://cdn.jsdelivr.net/npm/meyda/dist/web/meyda.min.js"></script>
+    <script type="module" src="/audio.js"></script>
+</body>
+
+</html>
