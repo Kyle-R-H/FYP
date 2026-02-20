@@ -3,6 +3,7 @@
 
 <head>
     <title>FYP Project 22343261</title>
+    <link rel="icon" href="data:,"> <!-- Hides Favicon Errors -->
 </head>
 
 <body>
@@ -45,13 +46,20 @@
 
         <div id="audioButtons">
             <h3>Current Audio</h3>
+            <button id="audioListen" style="background-color: maroon; color: white;">Listen</button>
             <button id="audioStart">Start</button>
             <button id="audioStop">Stop</button>
             <!-- <button id="start">Start</button> -->
         </div>
         
-        <!-- <div id="audio_visual">
-        </div> -->
+        <div id="timeDomainDiv">
+            <h3>Time-Domain Wave Graph</h3>
+            <canvas id="timeDomainGraph" width="250" height="100" style="border: 1px solid #000000;"></canvas>
+        </div>        
+        <div id="frequencyBarDiv">
+            <h3>Signal Frequency Wave Graph</h3>
+            <canvas id="frequencyBarGraph" width="250" height="100" style="border: 1px solid #000000;"></canvas>
+        </div>
     </div>
     
     <hr />
@@ -72,3 +80,10 @@
 </body>
 
 </html>
+
+
+<!-- 
+References:
+- 
+
+-->

@@ -1,41 +1,49 @@
 console.log("Audio Javascript");
 
+
+const timeDomainCanvas = document.getElementById('timeDomainGraph');
+const timeDomainContext = timeDomainCanvas.getContext('2d');
+
+const FrequencyBarCanvas = document.getElementById('frequencyBarGraph');
+const FrequencyBarContext = FrequencyBarCanvas.getContext('2d');
+
+const audioListen = document.getElementById("audioListen");
+
 const audioStart = document.getElementById("audioStart");
 const audioStop = document.getElementById("audioStop");
-// audioStart.addEventListener("change", async (event) => {
-//     console.log("audioStart");
-//     startAudioProcessing();
-// });
-// audioStop.addEventListener("change", async (event) => {
-//     const file = event.target.files[0];
-//     console.log("audioStop");
-//     stopAudioProcessing();
-// });
+
+audioListen.onclick = () => toggleMonitoring();
 audioStart.onclick = () => startAudioProcessing();
 audioStop.onclick = () => stopAudioProcessing();
 
 let openSheetMusicDisplayInstance = null; // OSMD instance
 let audioContext = null;                  // WebAudio AudioContext
 let mediaStreamSourceNode = null;         // MediaStreamAudioSourceNode for mic input
+let animationFrameRequestId = null;
+let analyserNode = null;                  // WebAudio AnalyserNode used for raw waveform + pitch
 // let meydaAnalyzerInstance = null;         // Meyda analyzer
-// let analyserNode = null;                  // WebAudio AnalyserNode used for raw waveform + pitch
-// let silentGainNode = null;                // zero-gain sink to keep audio graph "active" on some platforms
+let monitorGainNode = null;
+let monitoringEnabled = false;
 
+
+/**
+ * Audio Input and Processing
+*/
 async function startAudioProcessing() {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
     await audioContext.resume().catch(() => { });
     mediaStreamSourceNode = audioContext.createMediaStreamSource(stream);
 
-    // analyserNode = audioContext.createAnalyser();
-    // analyserNode.fftSize = 2048;
-    // mediaStreamSourceNode.connect(analyserNode);
+    analyserNode = audioContext.createAnalyser();
+    analyserNode.fftSize = 2048;
+    // analyserNode.fftSize = 4096;
+    mediaStreamSourceNode.connect(analyserNode);
 
-    // // silent gain to keep audio graph active on some browsers
-    // silentGainNode = audioContext.createGain();
-    // silentGainNode.gain.value = 0;
-    // analyserNode.connect(silentGainNode);
-    // try { silentGainNode.connect(audioContext.destination); } catch (e) { /* ignore */ }
+    monitorGainNode = audioContext.createGain();
+    monitorGainNode.gain.value = 0;
+    analyserNode.connect(monitorGainNode);
+    try { monitorGainNode.connect(audioContext.destination); } catch (e) { console.log("Listen Error"); }
 
     // // Meyda analyzer for chroma + RMS
     // const meydaBufferSize = 4096;
@@ -48,16 +56,134 @@ async function startAudioProcessing() {
     // });
     // meydaAnalyzerInstance.start();
 
-    // if (!animationFrameRequestId) drawWaveformAndUpdate();
+    if (!animationFrameRequestId) drawGraphs();
     // logDebugMessage('Microphone started — audioCtx state: ' + audioContext.state);
+}
+function toggleMonitoring() {
+    if (!monitorGainNode) return;
+
+    monitoringEnabled = !monitoringEnabled;
+
+    if (monitoringEnabled) {
+        monitorGainNode.gain.value = 1;
+        audioListen.style.backgroundColor = "green";
+        console.log("Monitoring ON");
+    } else {
+        monitorGainNode.gain.value = 0;
+        audioListen.style.backgroundColor = "maroon";
+        console.log("Monitoring OFF");
+    }
 }
 
 function stopAudioProcessing() {
     // if (meydaAnalyzerInstance) { try { meydaAnalyzerInstance.stop(); } catch (e) { } meydaAnalyzerInstance = null; }
     // if (animationFrameRequestId) { cancelAnimationFrame(animationFrameRequestId); animationFrameRequestId = null; }
-    // if (silentGainNode) { try { silentGainNode.disconnect(); } catch (e) { } silentGainNode = null; }
-    // if (analyserNode) { try { analyserNode.disconnect(); } catch (e) { } analyserNode = null; }
-    if (mediaStreamSourceNode) { try { mediaStreamSourceNode.disconnect(); console.log("disconnected");} catch (e) {console.log("ERR: " + e); } mediaStreamSourceNode = null; console.log("medastreamosurcenode = Null"); }
+    // if (monitorGainNode) { try { monitorGainNode.disconnect(); } catch (e) { } monitorGainNode = null; }
+    if (analyserNode) { try { analyserNode.disconnect(); } catch (e) { } analyserNode = null; }
+    if (mediaStreamSourceNode) { try { mediaStreamSourceNode.disconnect(); console.log("disconnected"); } catch (e) { console.log("ERR: " + e); } mediaStreamSourceNode = null; console.log("medastreamosurcenode = Null"); }
     if (audioContext) { try { audioContext.close(); } catch (e) { } audioContext = null; }
     // logDebugMessage('Microphone stopped');
 }
+
+/**
+ * Audio Visualisation
+ * 
+ * Time-domain waveform
+ */
+function drawTimeDoaminGraph() {
+    if (!analyserNode) {
+        animationFrameRequestId = requestAnimationFrame(drawTimeDoaminGraph);
+        return;
+    }
+
+    const buffer = new Float32Array(analyserNode.fftSize);
+    analyserNode.getFloatTimeDomainData(buffer);
+    // console.log("Buffer\nAs String" + buffer.toString());
+
+    // draw time-domain waveform
+    timeDomainContext.fillStyle = '#ffffff';
+    timeDomainContext.fillRect(0, 0, timeDomainCanvas.width, timeDomainCanvas.height);
+    timeDomainContext.lineWidth = 1;
+    timeDomainContext.strokeStyle = '#2a6';
+    timeDomainContext.beginPath();
+    const midY = timeDomainCanvas.height / 2;
+    for (let sampleIndex = 0; sampleIndex < buffer.length; sampleIndex++) {
+        const x = sampleIndex / buffer.length * timeDomainCanvas.width;
+        const y = midY + buffer[sampleIndex] * midY * 0.9;
+        if (sampleIndex === 0) timeDomainContext.moveTo(x, y);
+        else timeDomainContext.lineTo(x, y);
+    }
+    timeDomainContext.stroke();
+
+    // // compute RMS for UI
+    // let rms = 0;
+    // for (let sampleIndex = 0; sampleIndex < buffer.length; sampleIndex++) rms += buffer[sampleIndex] * buffer[sampleIndex];
+    // rms = Math.sqrt(rms / buffer.length);
+    // rmsLabel.textContent = rms.toFixed(3);
+    // const rmsPercent = Math.min(1, rms * 5);
+    // rmsFillBar.style.width = (rmsPercent * 100) + '%';
+
+    // pitch detection
+    // const detectedFrequencyHz = autoCorrelateAndFindFrequency(buffer, audioContext.sampleRate);
+    // if (detectedFrequencyHz > 0) detectedFrequencyLabel.textContent = detectedFrequencyHz.toFixed(1);
+    // else detectedFrequencyLabel.textContent = '—';
+
+    animationFrameRequestId = requestAnimationFrame(drawTimeDoaminGraph);
+}
+
+/**
+ * Frequency Bar Graph
+ */
+function drawFrequencyBarGraph() {
+    if (!analyserNode) {
+        animationFrameRequestId = requestAnimationFrame(drawFrequencyBarGraph);
+        return;
+    }
+
+    const buffer = new Uint8Array(analyserNode.frequencyBinCount);
+    analyserNode.getByteFrequencyData(buffer);
+    // console.log("Buffer\nAs String" + buffer.toString());
+
+    // draw time-domain waveform
+    FrequencyBarContext.fillStyle = '#ffffff';
+    FrequencyBarContext.fillRect(0, 0, FrequencyBarCanvas.width, FrequencyBarCanvas.height);
+    // FrequencyBarContext.strokeStyle = '#2a6';
+    const barWidth = (FrequencyBarCanvas.width / buffer.length) * 2.5;
+    let x = 0;
+
+    for (let i = 0; i < buffer.length; i++) {
+        const barHeight = buffer[i];
+        FrequencyBarContext.fillStyle = 'rgb(' + (barHeight + 100) + ',50,50)';
+        FrequencyBarContext.fillRect(
+            x,
+            FrequencyBarCanvas.height - barHeight / 2,
+            barWidth,
+            barHeight / 2
+        );
+        x += barWidth + 1;
+    }
+
+    animationFrameRequestId = requestAnimationFrame(drawFrequencyBarGraph);
+}
+
+function drawGraphs() {
+    drawTimeDoaminGraph();
+    drawFrequencyBarGraph();
+}
+
+/**
+ * Data
+ */
+// console.log("AudioContext state:", audioContext.state);
+// console.log("Sample Rate:", audioContext.sampleRate);
+// console.log("FFT Size:", analyserNode.fftSize);
+
+/**
+ * References:
+ * - https://www.w3schools.com/html/html5_canvas.asp
+ * - https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Visualizations_with_Web_Audio_API
+ * - https://stackoverflow.com/questions/14789283/what-does-the-fft-data-in-the-web-audio-api-correspond-to
+ * - https://stackoverflow.com/questions/4364823/how-do-i-obtain-the-frequencies-of-each-value-in-an-fft
+ * - https://dsp.stackexchange.com/questions/2818/extracting-frequencies-from-fft
+ * - 
+ */
