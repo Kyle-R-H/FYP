@@ -1,0 +1,26 @@
+#hList {
+    display: flex;
+    gap: 16px;
+    /* align-items: flex-start; */
+}
+
+#hList1 {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+#hList1 p {
+    margin-block-start: 6px;
+    margin-block-end: 6px;
+    /* display: inline-block; */
+}
+
+
+#audioButtons button {
+    margin-bottom: 6px;
+}
+
+#OSMDContainer {
+    margin-right: 16px;
+}

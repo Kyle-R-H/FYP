@@ -1,18 +1,34 @@
 console.log("Audio Javascript");
 
+const info = document.getElementById("info");
 
 const timeDomainCanvas = document.getElementById('timeDomainGraph');
 const timeDomainContext = timeDomainCanvas.getContext('2d');
 
-const FrequencyBarCanvas = document.getElementById('frequencyBarGraph');
-const FrequencyBarContext = FrequencyBarCanvas.getContext('2d');
+const FrequencyDomainCanvas = document.getElementById('frequencyDomainGraph');
+const FrequencyDomainContext = FrequencyDomainCanvas.getContext('2d');
 
 const audioListen = document.getElementById("audioListen");
 
 const audioStart = document.getElementById("audioStart");
 const audioStop = document.getElementById("audioStop");
 
-audioListen.onclick = () => toggleMonitoring();
+audioListen.onclick = () => {
+    if (!monitorGainNode) return;
+
+    monitoringEnabled = !monitoringEnabled;
+
+    if (monitoringEnabled) {
+        monitorGainNode.gain.value = 1;
+        audioListen.style.backgroundColor = "green";
+        console.log("Monitoring ON");
+    } else {
+        monitorGainNode.gain.value = 0;
+        audioListen.style.backgroundColor = "maroon";
+        console.log("Monitoring OFF");
+    }
+};
+
 audioStart.onclick = () => startAudioProcessing();
 audioStop.onclick = () => stopAudioProcessing();
 
@@ -36,9 +52,14 @@ async function startAudioProcessing() {
     mediaStreamSourceNode = audioContext.createMediaStreamSource(stream);
 
     analyserNode = audioContext.createAnalyser();
-    analyserNode.fftSize = 2048;
-    // analyserNode.fftSize = 4096;
+    analyserNode.fftSize = 4096;
     mediaStreamSourceNode.connect(analyserNode);
+
+    // Display Data in info tag
+    info.innerHTML = "<p>Sample Rate = " + audioContext.sampleRate + "</p>" +
+        "<p>AudioContext state = " + audioContext.state + "</p>" +
+        "<p>FFT Size =" + analyserNode.fftSize + "</p>" +
+        "<p>Time Domain Window = " + (analyserNode.fftSize/audioContext.sampleRate).toFixed(4) + " secs</p>"; // fftsize/samplerate = time
 
     monitorGainNode = audioContext.createGain();
     monitorGainNode.gain.value = 0;
@@ -57,22 +78,13 @@ async function startAudioProcessing() {
     // meydaAnalyzerInstance.start();
 
     if (!animationFrameRequestId) drawGraphs();
-    // logDebugMessage('Microphone started — audioCtx state: ' + audioContext.state);
-}
-function toggleMonitoring() {
-    if (!monitorGainNode) return;
 
-    monitoringEnabled = !monitoringEnabled;
+    // Show/Hide Buttons
+    audioListen.hidden = false;
+    audioStart.hidden = true;
+    audioStop.hidden = false;
 
-    if (monitoringEnabled) {
-        monitorGainNode.gain.value = 1;
-        audioListen.style.backgroundColor = "green";
-        console.log("Monitoring ON");
-    } else {
-        monitorGainNode.gain.value = 0;
-        audioListen.style.backgroundColor = "maroon";
-        console.log("Monitoring OFF");
-    }
+    console.log("Microphone started");
 }
 
 function stopAudioProcessing() {
@@ -82,7 +94,15 @@ function stopAudioProcessing() {
     if (analyserNode) { try { analyserNode.disconnect(); } catch (e) { } analyserNode = null; }
     if (mediaStreamSourceNode) { try { mediaStreamSourceNode.disconnect(); console.log("disconnected"); } catch (e) { console.log("ERR: " + e); } mediaStreamSourceNode = null; console.log("medastreamosurcenode = Null"); }
     if (audioContext) { try { audioContext.close(); } catch (e) { } audioContext = null; }
-    // logDebugMessage('Microphone stopped');
+
+    // Show/Hide Buttons
+    audioStop.hidden = true;
+    audioStart.hidden = false;
+    audioListen.hidden = true;
+
+    // Display Data in info tag
+    info.innerHTML = "";
+    console.log('Microphone stopped');
 }
 
 /**
@@ -134,9 +154,9 @@ function drawTimeDoaminGraph() {
 /**
  * Frequency Bar Graph
  */
-function drawFrequencyBarGraph() {
+function drawFrequencyDomainGraph() {
     if (!analyserNode) {
-        animationFrameRequestId = requestAnimationFrame(drawFrequencyBarGraph);
+        animationFrameRequestId = requestAnimationFrame(drawFrequencyDomainGraph);
         return;
     }
 
@@ -145,38 +165,31 @@ function drawFrequencyBarGraph() {
     // console.log("Buffer\nAs String" + buffer.toString());
 
     // draw time-domain waveform
-    FrequencyBarContext.fillStyle = '#ffffff';
-    FrequencyBarContext.fillRect(0, 0, FrequencyBarCanvas.width, FrequencyBarCanvas.height);
-    // FrequencyBarContext.strokeStyle = '#2a6';
-    const barWidth = (FrequencyBarCanvas.width / buffer.length) * 2.5;
+    FrequencyDomainContext.fillStyle = '#ffffff';
+    FrequencyDomainContext.fillRect(0, 0, FrequencyDomainCanvas.width, FrequencyDomainCanvas.height);
+    // FrequencyDomainContext.strokeStyle = '#2a6';
+    const barWidth = (FrequencyDomainCanvas.width / buffer.length) * 2.5;
     let x = 0;
 
     for (let i = 0; i < buffer.length; i++) {
         const barHeight = buffer[i];
-        FrequencyBarContext.fillStyle = 'rgb(' + (barHeight + 100) + ',50,50)';
-        FrequencyBarContext.fillRect(
+        FrequencyDomainContext.fillStyle = 'rgb(' + (barHeight + 100) + ',50,50)';
+        FrequencyDomainContext.fillRect(
             x,
-            FrequencyBarCanvas.height - barHeight / 2,
+            FrequencyDomainCanvas.height - barHeight / 2,
             barWidth,
             barHeight / 2
         );
         x += barWidth + 1;
     }
 
-    animationFrameRequestId = requestAnimationFrame(drawFrequencyBarGraph);
+    animationFrameRequestId = requestAnimationFrame(drawFrequencyDomainGraph);
 }
 
 function drawGraphs() {
     drawTimeDoaminGraph();
-    drawFrequencyBarGraph();
+    drawFrequencyDomainGraph();
 }
-
-/**
- * Data
- */
-// console.log("AudioContext state:", audioContext.state);
-// console.log("Sample Rate:", audioContext.sampleRate);
-// console.log("FFT Size:", analyserNode.fftSize);
 
 /**
  * References:
@@ -185,5 +198,6 @@ function drawGraphs() {
  * - https://stackoverflow.com/questions/14789283/what-does-the-fft-data-in-the-web-audio-api-correspond-to
  * - https://stackoverflow.com/questions/4364823/how-do-i-obtain-the-frequencies-of-each-value-in-an-fft
  * - https://dsp.stackexchange.com/questions/2818/extracting-frequencies-from-fft
+ * - https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/createGain
  * - 
  */

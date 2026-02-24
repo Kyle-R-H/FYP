@@ -1,5 +1,12 @@
 // import { OpenSheetMusicDisplay } from "./node_modules/opensheetmusicdisplay/build/dist/src/OpenSheetMusicDisplay/OpenSheetMusicDisplay";
 
+const zoomValue = document.getElementById("zoomValue");
+
+const osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(document.getElementById("OSMD"), {
+    autoResize: true,
+    backend: "svg",
+});
+
 /**
  * Check file extension
  */
@@ -9,13 +16,30 @@ function getExtension(filename) {
     return parts[parts.length - 1];
 }
 
-window.addEventListener("DOMContentLoaded", async () => {
-    const osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(document.getElementById("OSMD"), {
-        autoResize: true,
-        backend: "svg",
-        // disableCursor: false
-    });
+function adjustZoom(zoomChar) {
+    if (zoomChar === "+") {
+        const scrollY = window.scrollY;
+        osmd.zoom += 0.1;
+        osmd.render();
+        zoomValue.textContent = "Zoom = " + parseFloat(osmd.zoom).toFixed(1);
+        console.log("Zoom " + zoomChar + " Success");
+        window.scrollTo(0, scrollY);
 
+    } else if (zoomChar === "-") {
+        const scrollY = window.scrollY;
+        osmd.zoom -= 0.1;
+        osmd.render();
+        zoomValue.textContent = "Zoom = " + parseFloat(osmd.zoom).toFixed(1);
+        console.log("Zoom - Success");
+        window.scrollTo(0, scrollY);
+
+    } else {
+        alert("dev left fault in osmd.js/adjustZoom");
+        console.log("dev left fault in osmd.js/adjustZoom");
+    }
+}
+
+window.addEventListener("DOMContentLoaded", async () => {
     // File input handler
     const fileInput = document.getElementById("scoreInput");
     fileInput.addEventListener("change", async (event) => {
@@ -49,6 +73,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     await osmd.load("Scores/Error.musicxml");
     osmd.render();
 
+    zoomValue.textContent = "Zoom = " + parseFloat(osmd.zoom).toFixed(1);
     osmd.cursor.show();
 
     document.getElementById("next").onclick = () => osmd.cursor.next();
@@ -56,10 +81,22 @@ window.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("reset").onclick = () => osmd.cursor.reset();
 
     window.addEventListener("keydown", (e) => {
-        if (e.key === "ArrowRight") osmd.cursor.next();
-        if (e.key === "ArrowLeft") osmd.cursor.previous();
+        if (e.key === "ArrowRight" || e.key === "d") osmd.cursor.next();
+        if (e.key === "ArrowLeft" || e.key === "a") osmd.cursor.previous();
     });
+
+    document.getElementById("zoomp").onclick = () => adjustZoom("+");
+    document.getElementById("zoomm").onclick = () => adjustZoom("-");
+    window.addEventListener("keydown", (e) => {
+        if (e.key === "-") adjustZoom("-");
+        if (e.key === "=") adjustZoom("+");
+    });
+
 });
 
 
-// https://stackoverflow.com/questions/7977084/check-file-type-when-form-submit
+/**
+ *- https://stackoverflow.com/questions/7977084/check-file-type-when-form-submit
+ *- https://stackoverflow.com/questions/16388772/maintain-scroll-position-of-large-html-page-when-client-returns
+ *- 
+*/
