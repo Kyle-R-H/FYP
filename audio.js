@@ -1,6 +1,28 @@
+/**
+ * This file focuses on the audio processing
+ * It enables the control of the audio accessed by the browser and contains
+ * the processing of the input signal into the various graphs
+ * 
+ * The Time Domain
+ * Amplitude / Time where the window is displayed in the info id div
+ * This is displayed to show the signal that is being picked up over time
+ * 
+ * The Frequency Domain 
+ * Amplitude / Frequency which contains bars of frequency bins where the 
+ * width is calculated as 
+ * sample rate / fft size -> 44100 / 4096 as example
+ * to get the frequency at each bin, you have to find the width of the fisrt bin
+ * and multiply it by the specified bin
+ * so if the bin width = 10.77, the freq at bin 20 is 20 * 10.77 = 215.4 which 
+ * roughly equates to a frequency bewteen a G#3(207.652) and A3(220)
+ */
+
+
 console.log("Audio Javascript");
 
 const info = document.getElementById("info");
+const TDInfo = document.getElementById("TDInfo");
+const FDInfo = document.getElementById("FDInfo");
 
 const timeDomainCanvas = document.getElementById('timeDomainGraph');
 const timeDomainContext = timeDomainCanvas.getContext('2d');
@@ -41,25 +63,38 @@ let analyserNode = null;                  // WebAudio AnalyserNode used for raw 
 let monitorGainNode = null;
 let monitoringEnabled = false;
 
+let freqBinValue = 0;
 
 /**
  * Audio Input and Processing
 */
 async function startAudioProcessing() {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+            echoCancellation: true,
+            noiseSuppression: false,
+            autoGainControl: false
+        }
+    });
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
     await audioContext.resume().catch(() => { });
     mediaStreamSourceNode = audioContext.createMediaStreamSource(stream);
 
     analyserNode = audioContext.createAnalyser();
-    analyserNode.fftSize = 4096;
+
+    // Higher the number, the more accurate the result, but in turn, slower
+    analyserNode.fftSize = 32768;
     mediaStreamSourceNode.connect(analyserNode);
+
+    // Hz of each bar in freq domain
+    freqBinValue = audioContext.sampleRate / analyserNode.fftSize;
 
     // Display Data in info tag
     info.innerHTML = "<p>Sample Rate = " + audioContext.sampleRate + "</p>" +
         "<p>AudioContext state = " + audioContext.state + "</p>" +
         "<p>FFT Size =" + analyserNode.fftSize + "</p>" +
-        "<p>Time Domain Window = " + (analyserNode.fftSize/audioContext.sampleRate).toFixed(4) + " secs</p>"; // fftsize/samplerate = time
+        "<p>Time Domain Window = " + (analyserNode.fftSize / audioContext.sampleRate).toFixed(4) + " secs</p>" + // fftsize/samplerate = time
+        "<p>Freq Bin Value = " + (freqBinValue).toFixed(4) + "Hz per bin</p>"; // samplerate/fftsize = freqBinCount
 
     monitorGainNode = audioContext.createGain();
     monitorGainNode.gain.value = 0;
@@ -101,8 +136,33 @@ function stopAudioProcessing() {
     audioListen.hidden = true;
 
     // Display Data in info tag
-    info.innerHTML = "";
+    info.textContent = "";
     console.log('Microphone stopped');
+}
+
+// Based on DanielJDufour fast-max method
+function fastMaxMin(array) {
+    let max = array[0];
+    let min = array[0];
+
+    let maxIndex = 0;
+    let minIndex = 0;
+
+    for (let i = 1; i < array.length; i++) {
+        const value = array[i];
+        if (value > max) {
+            max = value;
+            maxIndex = i;
+            if (max === 255) break;
+        }
+        if (value < min) {
+            min = value;
+            minIndex = i;
+            if (min === 255) break;
+        }
+    }
+
+    return { max, min, maxIndex, minIndex }
 }
 
 /**
@@ -118,9 +178,9 @@ function drawTimeDoaminGraph() {
 
     const buffer = new Float32Array(analyserNode.fftSize);
     analyserNode.getFloatTimeDomainData(buffer);
-    // console.log("Buffer\nAs String" + buffer.toString());
+    const maxMinWIndex = fastMaxMin(buffer);
 
-    // draw time-domain waveform
+    // draw time domain
     timeDomainContext.fillStyle = '#ffffff';
     timeDomainContext.fillRect(0, 0, timeDomainCanvas.width, timeDomainCanvas.height);
     timeDomainContext.lineWidth = 1;
@@ -128,12 +188,16 @@ function drawTimeDoaminGraph() {
     timeDomainContext.beginPath();
     const midY = timeDomainCanvas.height / 2;
     for (let sampleIndex = 0; sampleIndex < buffer.length; sampleIndex++) {
-        const x = sampleIndex / buffer.length * timeDomainCanvas.width;
-        const y = midY + buffer[sampleIndex] * midY * 0.9;
-        if (sampleIndex === 0) timeDomainContext.moveTo(x, y);
-        else timeDomainContext.lineTo(x, y);
+        // x axis
+        const time = sampleIndex / buffer.length * timeDomainCanvas.width;
+        // y axis
+        const amplitude = midY + buffer[sampleIndex] * midY * 0.9;
+        if (sampleIndex === 0) timeDomainContext.moveTo(time, amplitude);
+        else timeDomainContext.lineTo(time, amplitude);
     }
     timeDomainContext.stroke();
+
+    TDInfo.innerHTML = "<h4>Amplitude</h4><p>Max Amp = " + maxMinWIndex.max.toFixed(4) + "</p>" + "<p>Min Amp = " + maxMinWIndex.min.toFixed(4) + "</p>";
 
     // // compute RMS for UI
     // let rms = 0;
@@ -147,8 +211,6 @@ function drawTimeDoaminGraph() {
     // const detectedFrequencyHz = autoCorrelateAndFindFrequency(buffer, audioContext.sampleRate);
     // if (detectedFrequencyHz > 0) detectedFrequencyLabel.textContent = detectedFrequencyHz.toFixed(1);
     // else detectedFrequencyLabel.textContent = '—';
-
-    animationFrameRequestId = requestAnimationFrame(drawTimeDoaminGraph);
 }
 
 /**
@@ -161,34 +223,42 @@ function drawFrequencyDomainGraph() {
     }
 
     const buffer = new Uint8Array(analyserNode.frequencyBinCount);
+    // Computes fast fourier transform on the buffer
     analyserNode.getByteFrequencyData(buffer);
-    // console.log("Buffer\nAs String" + buffer.toString());
+    const maxMinWIndex = fastMaxMin(buffer);
 
-    // draw time-domain waveform
+    // draw frequency domain
     FrequencyDomainContext.fillStyle = '#ffffff';
     FrequencyDomainContext.fillRect(0, 0, FrequencyDomainCanvas.width, FrequencyDomainCanvas.height);
-    // FrequencyDomainContext.strokeStyle = '#2a6';
+    FrequencyDomainContext.strokeStyle = '#2a6';
+    // 2.5 = random bar width multiplier
     const barWidth = (FrequencyDomainCanvas.width / buffer.length) * 2.5;
-    let x = 0;
+
+    // x axis
+    let frequency = 0;
 
     for (let i = 0; i < buffer.length; i++) {
+        // y axis
         const barHeight = buffer[i];
-        FrequencyDomainContext.fillStyle = 'rgb(' + (barHeight + 100) + ',50,50)';
+        FrequencyDomainContext.fillStyle = 'rgb(' + (barHeight - 50) + ',170, 102)';
         FrequencyDomainContext.fillRect(
-            x,
+            frequency,
             FrequencyDomainCanvas.height - barHeight / 2,
             barWidth,
             barHeight / 2
         );
-        x += barWidth + 1;
+        frequency += barWidth + 1;
     }
 
-    animationFrameRequestId = requestAnimationFrame(drawFrequencyDomainGraph);
+    FDInfo.innerHTML = "<h4>Amplitude</h4><p>Max Amp = " + maxMinWIndex.max + "</p>" +
+        "<p>Peak Frequency = " + maxMinWIndex.maxIndex * freqBinValue + "Hz</p>";
+
 }
 
 function drawGraphs() {
     drawTimeDoaminGraph();
     drawFrequencyDomainGraph();
+    animationFrameRequestId = requestAnimationFrame(drawGraphs);
 }
 
 /**
@@ -199,5 +269,6 @@ function drawGraphs() {
  * - https://stackoverflow.com/questions/4364823/how-do-i-obtain-the-frequencies-of-each-value-in-an-fft
  * - https://dsp.stackexchange.com/questions/2818/extracting-frequencies-from-fft
  * - https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/createGain
+ * - https://github.com/DanielJDufour/fast-max/blob/main/index.js
  * - 
  */

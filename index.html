@@ -12,8 +12,10 @@
         Real-time Interactive Music Score Tracking Using Live Microphone Input
     </h1>
     <hr />
-
-    <div id="hList">
+    <div id="info">
+    </div>
+    <hr>
+    <div class="hList">
         <!--^ Upload Score and Temp Audio -->
         <div id="scoreAudioInputs">
             <h3>Score Input</h3>
@@ -36,35 +38,43 @@
             <h3>Audio</h3>
             <button id="audioListen" style="background-color: maroon; color: white;" hidden>Listen</button>
             <button id="audioStart">Start</button>
-            <button id="audioStop">Stop</button>
+            <button id="audioStop" hidden>Stop</button>
             <!-- <button id="start">Start</button> -->
         </div>
     </div>
 
     <hr>
 
-    <div id="hList">
-        <div id="timeDomainDiv">
+    <div class="hListGraph">
+        <div class="domainDiv">
             <h3>Time Domain (Amplitude/Time)</h3>
             <canvas id="timeDomainGraph" width="250" height="100" style="border: 1px solid #000000;"></canvas>
         </div>
-        <div id="info">
+
+        <div class="graphInfo" id="TDInfo">
+            <h4>Amplitude</h4>
         </div>
+
+
 
     </div>
 
     <hr>
 
-    <div id="hList">
-        <div id="frequencyDomainDiv">
+    <div class="hListGraph">
+        <div class="domainDiv">
             <h3>Frequency Domain (Amplitude/Freq)</h3>
             <canvas id="frequencyDomainGraph" width="250" height="100" style="border: 1px solid #000000;"></canvas>
         </div>
+        <div class="graphInfo" id="FDInfo">
+            <h4>Amplitude</h4>
+        </div>
+
     </div>
 
     <hr />
     <h3 style="margin-block-end: 5px;">Signal Data</h3>
-    <div id="hList1">
+    <div class="hListText">
         <div>
             <p style="font-weight: bolder;">Exp Note</p>
             <p id="signalData1">Test</p>
@@ -88,7 +98,7 @@
     </div>
 
     <hr />
-    <div id="hList" style="align-items: center;">
+    <div class="hList" style="align-items: center;">
         <h3>OpenSheetMusicDisplay Score View</h3>
         <button id="zoomp" type="button">+</button>
         <button id="zoomm" type="button">-</button>

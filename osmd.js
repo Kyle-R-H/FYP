@@ -1,7 +1,8 @@
 // import { OpenSheetMusicDisplay } from "./node_modules/opensheetmusicdisplay/build/dist/src/OpenSheetMusicDisplay/OpenSheetMusicDisplay";
 
-const zoomValue = document.getElementById("zoomValue");
+const fileInput = document.getElementById("scoreInput");
 
+const zoomValue = document.getElementById("zoomValue");
 const osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(document.getElementById("OSMD"), {
     autoResize: true,
     backend: "svg",
@@ -41,7 +42,6 @@ function adjustZoom(zoomChar) {
 
 window.addEventListener("DOMContentLoaded", async () => {
     // File input handler
-    const fileInput = document.getElementById("scoreInput");
     fileInput.addEventListener("change", async (event) => {
         const file = event.target.files[0];
         const fileType = getExtension(file.name);
