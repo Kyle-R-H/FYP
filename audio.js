@@ -17,23 +17,42 @@
  * roughly equates to a frequency bewteen a G#3(207.652) and A3(220)
  */
 
-
-console.log("Audio Javascript");
-
 const info = document.getElementById("info");
 const TDInfo = document.getElementById("TDInfo");
 const FDInfo = document.getElementById("FDInfo");
 
-const timeDomainCanvas = document.getElementById('timeDomainGraph');
-const timeDomainContext = timeDomainCanvas.getContext('2d');
+const timeDomainCanvas = document.getElementById("timeDomainGraph");
+const timeDomainContext = timeDomainCanvas.getContext("2d");
 
-const FrequencyDomainCanvas = document.getElementById('frequencyDomainGraph');
-const FrequencyDomainContext = FrequencyDomainCanvas.getContext('2d');
+const FrequencyDomainCanvas = document.getElementById("frequencyDomainGraph");
+const FrequencyDomainContext = FrequencyDomainCanvas.getContext("2d");
+
+const scoreChromagram = document.getElementById("scoreChromagram");
+const audioChromagram = document.getElementById("audioChromagram");
 
 const audioListen = document.getElementById("audioListen");
 
 const audioStart = document.getElementById("audioStart");
 const audioStop = document.getElementById("audioStop");
+
+// Signal Data
+const chromaValue = document.getElementById("chromaValue");
+const mfccValue = document.getElementById("mfccValue");
+const rmsValue = document.getElementById("rmsValue");
+
+const scale = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+
+
+let openSheetMusicDisplayInstance = null; // OSMD instance
+let audioContext = null;                  // WebAudio AudioContext
+let mediaStreamSourceNode = null;         // MediaStreamAudioSourceNode for mic input
+let animationFrameRequestId = null;       // Allow for graphing
+let analyserNode = null;                  // WebAudio AnalyserNode used for raw waveform + pitch
+let meydaAnalyzer = null;                 // Meyda analyzer
+let monitorGainNode = null;               // Gain for live audio playback 
+let monitoringEnabled = false;            // Toggle for audio playback
+
+let freqBinValue = 0;   // Hz value per freq bin 
 
 audioListen.onclick = () => {
     if (!monitorGainNode) return;
@@ -54,90 +73,15 @@ audioListen.onclick = () => {
 audioStart.onclick = () => startAudioProcessing();
 audioStop.onclick = () => stopAudioProcessing();
 
-let openSheetMusicDisplayInstance = null; // OSMD instance
-let audioContext = null;                  // WebAudio AudioContext
-let mediaStreamSourceNode = null;         // MediaStreamAudioSourceNode for mic input
-let animationFrameRequestId = null;
-let analyserNode = null;                  // WebAudio AnalyserNode used for raw waveform + pitch
-// let meydaAnalyzerInstance = null;         // Meyda analyzer
-let monitorGainNode = null;
-let monitoringEnabled = false;
-
-let freqBinValue = 0;
-
+/*
+ * Helper Methods
+ */
 /**
- * Audio Input and Processing
-*/
-async function startAudioProcessing() {
-    const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-            echoCancellation: true,
-            noiseSuppression: false,
-            autoGainControl: false
-        }
-    });
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    await audioContext.resume().catch(() => { });
-    mediaStreamSourceNode = audioContext.createMediaStreamSource(stream);
+ * Get all 12 chroma feature values between 0 and 1
+ */
+function chromaNormalise(features) {
 
-    analyserNode = audioContext.createAnalyser();
-
-    // Higher the number, the more accurate the result, but in turn, slower
-    analyserNode.fftSize = 32768;
-    mediaStreamSourceNode.connect(analyserNode);
-
-    // Hz of each bar in freq domain
-    freqBinValue = audioContext.sampleRate / analyserNode.fftSize;
-
-    // Display Data in info tag
-    info.innerHTML = "<p>Sample Rate = " + audioContext.sampleRate + "</p>" +
-        "<p>AudioContext state = " + audioContext.state + "</p>" +
-        "<p>FFT Size =" + analyserNode.fftSize + "</p>" +
-        "<p>Time Domain Window = " + (analyserNode.fftSize / audioContext.sampleRate).toFixed(4) + " secs</p>" + // fftsize/samplerate = time
-        "<p>Freq Bin Value = " + (freqBinValue).toFixed(4) + "Hz per bin</p>"; // samplerate/fftsize = freqBinCount
-
-    monitorGainNode = audioContext.createGain();
-    monitorGainNode.gain.value = 0;
-    analyserNode.connect(monitorGainNode);
-    try { monitorGainNode.connect(audioContext.destination); } catch (e) { console.log("Listen Error"); }
-
-    // // Meyda analyzer for chroma + RMS
-    // const meydaBufferSize = 4096;
-    // meydaAnalyzerInstance = Meyda.createMeydaAnalyzer({
-    //     audioContext: audioContext,
-    //     source: mediaStreamSourceNode,
-    //     bufferSize: meydaBufferSize,
-    //     featureExtractors: ['chroma', 'rms'],
-    //     callback: features => onMeydaFeaturesCallback(features)
-    // });
-    // meydaAnalyzerInstance.start();
-
-    if (!animationFrameRequestId) drawGraphs();
-
-    // Show/Hide Buttons
-    audioListen.hidden = false;
-    audioStart.hidden = true;
-    audioStop.hidden = false;
-
-    console.log("Microphone started");
-}
-
-function stopAudioProcessing() {
-    // if (meydaAnalyzerInstance) { try { meydaAnalyzerInstance.stop(); } catch (e) { } meydaAnalyzerInstance = null; }
-    // if (animationFrameRequestId) { cancelAnimationFrame(animationFrameRequestId); animationFrameRequestId = null; }
-    // if (monitorGainNode) { try { monitorGainNode.disconnect(); } catch (e) { } monitorGainNode = null; }
-    if (analyserNode) { try { analyserNode.disconnect(); } catch (e) { } analyserNode = null; }
-    if (mediaStreamSourceNode) { try { mediaStreamSourceNode.disconnect(); console.log("disconnected"); } catch (e) { console.log("ERR: " + e); } mediaStreamSourceNode = null; console.log("medastreamosurcenode = Null"); }
-    if (audioContext) { try { audioContext.close(); } catch (e) { } audioContext = null; }
-
-    // Show/Hide Buttons
-    audioStop.hidden = true;
-    audioStart.hidden = false;
-    audioListen.hidden = true;
-
-    // Display Data in info tag
-    info.textContent = "";
-    console.log('Microphone stopped');
+    return;
 }
 
 // Based on DanielJDufour fast-max method
@@ -165,9 +109,128 @@ function fastMaxMin(array) {
     return { max, min, maxIndex, minIndex }
 }
 
+
 /**
+ * Audio Input and Processing
+*/
+async function startAudioProcessing() {
+    const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+            echoCancellation: true,
+            noiseSuppression: false,
+            autoGainControl: false
+        }
+    });
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    await audioContext.resume().catch(() => { });
+    mediaStreamSourceNode = audioContext.createMediaStreamSource(stream);
+
+    analyserNode = audioContext.createAnalyser();
+
+    // Higher the number, the more accurate the result, but in turn, slower
+    analyserNode.fftSize = 4096;
+    mediaStreamSourceNode.connect(analyserNode);
+
+    // Hz of each bar in freq domain
+    freqBinValue = audioContext.sampleRate / analyserNode.fftSize;
+
+    // Display Data in info tag
+    info.innerHTML = "<p>Sample Rate = " + audioContext.sampleRate + "</p>" +
+        "<p>AudioContext state = " + audioContext.state + "</p>" +
+        "<p>FFT Size =" + analyserNode.fftSize + "</p>" +
+        "<p>Time Domain Window = " + (analyserNode.fftSize / audioContext.sampleRate).toFixed(4) + " secs</p>" + // fftsize/samplerate = time
+        "<p>Freq Bin Value = " + (freqBinValue).toFixed(4) + "Hz per bin</p>"; // samplerate/fftsize = freqBinCount
+
+    monitorGainNode = audioContext.createGain();
+    monitorGainNode.gain.value = 0;
+    analyserNode.connect(monitorGainNode);
+    try { monitorGainNode.connect(audioContext.destination); } catch (e) { console.log("Listen Error"); }
+
+    // Meyda analyzer for chroma + RMS
+    const meydaBufferSize = 4096;
+    meydaAnalyzer = Meyda.createMeydaAnalyzer({
+        audioContext: audioContext,
+        source: mediaStreamSourceNode,
+        bufferSize: meydaBufferSize,
+        featureExtractors: ['chroma', 'rms', 'mfcc'],
+        // callback: onMeydaFeaturesCallback
+        callback: features => {
+            console.log(features);
+        }
+    });
+    meydaAnalyzer.start();
+
+    if (!animationFrameRequestId) drawGraphs();
+
+    // Show/Hide Buttons
+    audioListen.hidden = false;
+    audioStart.hidden = true;
+    audioStop.hidden = false;
+
+    console.log("[LOG] Microphone started");
+}
+
+function stopAudioProcessing() {
+    if (meydaAnalyzer) {
+        try {
+            meydaAnalyzer.stop();
+        } catch (e) { } meydaAnalyzer = null;
+    }
+    if (animationFrameRequestId) {
+        cancelAnimationFrame(animationFrameRequestId);
+        animationFrameRequestId = null;
+    }
+    if (monitorGainNode) {
+        try {
+            monitorGainNode.disconnect();
+        } catch (e) { } monitorGainNode = null;
+    }
+    if (analyserNode) {
+        try {
+            analyserNode.disconnect();
+        } catch (e) { } analyserNode = null;
+    }
+    if (mediaStreamSourceNode) {
+        try {
+            mediaStreamSourceNode.disconnect();
+            console.log("disconnected");
+        } catch (e) { } mediaStreamSourceNode = null;
+    }
+    if (audioContext) {
+        try {
+            audioContext.close();
+        } catch (e) { } audioContext = null;
+    }
+
+    // Show/Hide Buttons
+    audioStop.hidden = true;
+    audioStart.hidden = false;
+    audioListen.hidden = true;
+
+    // Display Data in info tag
+    info.textContent = "";
+    console.log('Microphone stopped');
+}
+
+/**
+ * Callback method for meyda analyser for the signal features
+ */
+function onMeydaFeaturesCallback(features) {
+    // Chroma values represent the strength of the values per note 
+    // in an array of 12 note western scale
+    const chroma = features.chroma;
+    const rms = features.rms
+
+    console.log("[RMS] " + rms);
+    rmsValue.textContent = rms.toFixed(6);
+    console.log("[MEYDA] features: " + features.chroma);
+}
+
+
+/*
  * Audio Visualisation
- * 
+ */
+/** 
  * Time-domain waveform
  */
 function drawTimeDoaminGraph() {
@@ -230,7 +293,7 @@ function drawFrequencyDomainGraph() {
     // draw frequency domain
     FrequencyDomainContext.fillStyle = '#ffffff';
     FrequencyDomainContext.fillRect(0, 0, FrequencyDomainCanvas.width, FrequencyDomainCanvas.height);
-    FrequencyDomainContext.strokeStyle = '#2a6';
+    FrequencyDomainContext.strokeStyle = 'rgb(0, 170, 0)';
     // 2.5 = random bar width multiplier
     const barWidth = (FrequencyDomainCanvas.width / buffer.length) * 2.5;
 
@@ -240,7 +303,8 @@ function drawFrequencyDomainGraph() {
     for (let i = 0; i < buffer.length; i++) {
         // y axis
         const barHeight = buffer[i];
-        FrequencyDomainContext.fillStyle = 'rgb(' + (barHeight - 50) + ',170, 102)';
+        // FrequencyDomainContext.fillStyle = 'rgb(' + (barHeight - 50) + ',170, 0)';
+        FrequencyDomainContext.fillStyle = 'rgb(0, 170, 0)';
         FrequencyDomainContext.fillRect(
             frequency,
             FrequencyDomainCanvas.height - barHeight / 2,
@@ -270,5 +334,8 @@ function drawGraphs() {
  * - https://dsp.stackexchange.com/questions/2818/extracting-frequencies-from-fft
  * - https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/createGain
  * - https://github.com/DanielJDufour/fast-max/blob/main/index.js
- * - 
+ **- Auto-Correlation: Musical Examination to Bridge Audio Data and Sheet Music (Paper)
+ * - https://observablehq.com/@cimi/meyda-analyzer#micAnalyzer
+ * - https://meyda.js.org/guides/online-web-audio.html
+ * 
  */

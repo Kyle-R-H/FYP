@@ -5,6 +5,21 @@
     <title>FYP Project 22343261</title>
     <link rel="icon" href="data:,"> <!-- Hides Favicon Errors -->
     <link rel="stylesheet" href="light_theme.css">
+
+    <!-- D3.js is for graphing -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    <!-- OpenSheetMusicDisplay Online import as I couldnt get the offline to work using npm nor manual import -->
+    <script src="https://cdn.jsdelivr.net/npm/opensheetmusicdisplay/build/opensheetmusicdisplay.min.js"></script>
+
+    <!-- Audio Control -->
+    <script src="https://cdn.jsdelivr.net/npm/meyda/dist/web/meyda.min.js"></script>
+    <!-- Midi control and conversion -->
+    <script src="https://cdn.jsdelivr.net/npm/@tonejs/midi"></script>
+
+    <script type="module" src="/osmd.js"></script>
+    <script type="module" src="/audio.js"></script>
+    <script type="module" src="/helpers.js"></script>
 </head>
 
 <body>
@@ -54,12 +69,7 @@
         <div class="graphInfo" id="TDInfo">
             <h4>Amplitude</h4>
         </div>
-
-
-
     </div>
-
-    <hr>
 
     <div class="hListGraph">
         <div class="domainDiv">
@@ -73,27 +83,49 @@
     </div>
 
     <hr />
+
+    <div class="hListGraph">
+        <div>
+            <h3>Score Chromagram</h3>
+            <svg id="scoreChromagram"></svg>
+        </div>
+        <div>
+            <h3>Audio Chromagram</h3>
+            <svg id="AudioChromagram"></svg>
+        </div>
+    </div>
+
+    <hr>
     <h3 style="margin-block-end: 5px;">Signal Data</h3>
     <div class="hListText">
         <div>
             <p style="font-weight: bolder;">Exp Note</p>
-            <p id="signalData1">Test</p>
+            <p id="expectedNote">Test</p>
         </div>
         <div>
             <p style="font-weight: bolder;">Cents</p>
-            <p id="signalData2">Test</p>
+            <p id="centsValue">Test</p>
         </div>
         <div>
             <p style="font-weight: bolder;">Peak Hz</p>
-            <p id="signalData2">Test</p>
+            <p id="hertzValue">Test</p>
+        </div>
+    </div>
+
+    <hr />
+    <h3 style="margin-block-end: 5px;">Signal Data</h3>
+    <div class="hListText">
+        <div id="chromagram">
+            <p style="font-weight: bolder;">Chroma Notes</p>
+            <p id="chromaValue">Test</p>
         </div>
         <div>
-            <p style="font-weight: bolder;">Peak Amp</p>
-            <p id="signalData2">Test</p>
+            <p style="font-weight: bolder;">MFCC</p>
+            <p id="mfccValue">Test</p>
         </div>
         <div>
-            <p style="font-weight: bolder;">Min Amp</p>
-            <p id="signalData2">Test</p>
+            <p style="font-weight: bolder;">RMS (Root-Mean-Squred)</p>
+            <p id="rmsValue">Test</p>
         </div>
     </div>
 
@@ -104,22 +136,11 @@
         <button id="zoomm" type="button">-</button>
         <p id="zoomValue"></p>
     </div>
+
     <!-- Double div to remove overhang on the right side of the screen -->
     <div id="OSMDContainer">
         <div id="OSMD"></div>
     </div>
-
-
-
-    <!-- OpenSheetMusicDisplay Online import as I couldnt get the offline to work using npm nor manual import -->
-    <script src="https://cdn.jsdelivr.net/npm/opensheetmusicdisplay/build/opensheetmusicdisplay.min.js"></script>
-
-    <!-- Display the OSMD score -->
-    <script type="module" src="/osmd.js"></script>
-
-    <!-- Audio Control -->
-    <script src="https://cdn.jsdelivr.net/npm/meyda/dist/web/meyda.min.js"></script>
-    <script type="module" src="/audio.js"></script>
 </body>
 
 </html>
