@@ -35,7 +35,6 @@ const audioStart = document.getElementById("audioStart");
 const audioStop = document.getElementById("audioStop");
 
 // Signal Data
-const expectedNotes = document.getElementById("expectedNotes");
 const chromaContainer = document.getElementById("chromaContainer");
 const rmsValue = document.getElementById("rmsValue");
 

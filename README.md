@@ -1,6 +1,8 @@
 # FYP
 Real-time Interactive Music Score Tracking Using Live Microphone Input
 
+## Scores
+Public Domain Scores: https://github.com/musetrainer/library/tree/master
 
 ## Changelog
 ### Till 06/03/26
@@ -12,6 +14,9 @@ Real-time Interactive Music Score Tracking Using Live Microphone Input
 - Signal Data somewhat displayed, WIP
 - Score display using osmd with zoom functionality and default (error) score
 - Meyda included and logs chroma values, rms, mfcc
+
+### 18/03/26
+- Display Score expected notes from osmd cursor
 
 ## Sources
 List of external items included/used for implementation/ inspiration
