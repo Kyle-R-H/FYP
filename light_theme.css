@@ -1,7 +1,8 @@
-#info p{
+#info p {
     margin-block-start: 2px;
     margin-block-end: 2px;
 }
+
 .hList {
     display: flex;
     gap: 16px;
@@ -41,4 +42,21 @@
 
 #OSMDContainer {
     margin-right: 16px;
+}
+
+#chromaContainer {
+    display: flex;
+    gap: 2px;
+    margin: 1px;
+}
+
+.chromaBox {
+    width: 40px;
+    height: 40px;
+    background-color: white;
+    border: 1px solid #ccc;
+    text-align: center;
+    align-content: center;
+    font-weight: bolder;
+
 }

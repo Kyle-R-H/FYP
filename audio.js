@@ -27,7 +27,6 @@ const timeDomainContext = timeDomainCanvas.getContext("2d");
 const FrequencyDomainCanvas = document.getElementById("frequencyDomainGraph");
 const FrequencyDomainContext = FrequencyDomainCanvas.getContext("2d");
 
-const scoreChromagram = document.getElementById("scoreChromagram");
 const audioChromagram = document.getElementById("audioChromagram");
 
 const audioListen = document.getElementById("audioListen");
@@ -36,8 +35,8 @@ const audioStart = document.getElementById("audioStart");
 const audioStop = document.getElementById("audioStop");
 
 // Signal Data
-const chromaValue = document.getElementById("chromaValue");
-const mfccValue = document.getElementById("mfccValue");
+const expectedNotes = document.getElementById("expectedNotes");
+const chromaContainer = document.getElementById("chromaContainer");
 const rmsValue = document.getElementById("rmsValue");
 
 const scale = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
@@ -51,6 +50,7 @@ let analyserNode = null;                  // WebAudio AnalyserNode used for raw 
 let meydaAnalyzer = null;                 // Meyda analyzer
 let monitorGainNode = null;               // Gain for live audio playback 
 let monitoringEnabled = false;            // Toggle for audio playback
+let audioChromaDisplayed = false;         // Only load the audio chroma boxes once 
 
 let freqBinValue = 0;   // Hz value per freq bin 
 
@@ -76,14 +76,6 @@ audioStop.onclick = () => stopAudioProcessing();
 /*
  * Helper Methods
  */
-/**
- * Get all 12 chroma feature values between 0 and 1
- */
-function chromaNormalise(features) {
-
-    return;
-}
-
 // Based on DanielJDufour fast-max method
 function fastMaxMin(array) {
     let max = array[0];
@@ -109,26 +101,45 @@ function fastMaxMin(array) {
     return { max, min, maxIndex, minIndex }
 }
 
+function updateChromaColors(values) {
+    const boxes = document.querySelectorAll('.chromaBox');
+    boxes.forEach((box, i) => {
+        const value = values[i];
+        // white = 0, green = 1
+        const greenValue = Math.floor(value * 255);
+        box.style.backgroundColor = `rgb(${greenValue}, 255, ${greenValue})`;
+    });
+}
+
 
 /**
  * Audio Input and Processing
 */
 async function startAudioProcessing() {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
     const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
-            echoCancellation: true,
+            echoCancellation: false,
             noiseSuppression: false,
             autoGainControl: false
         }
     });
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
     await audioContext.resume().catch(() => { });
     mediaStreamSourceNode = audioContext.createMediaStreamSource(stream);
 
-    analyserNode = audioContext.createAnalyser();
+    // Monitoring
+    monitorGainNode = audioContext.createGain();
+    monitorGainNode.gain.value = 0;
 
-    // Higher the number, the more accurate the result, but in turn, slower
-    analyserNode.fftSize = 4096;
+    // Analysing
+    analyserNode = audioContext.createAnalyser();
+    analyserNode.fftSize = 1024;
+
+    // Connecting
+    mediaStreamSourceNode.connect(monitorGainNode);
+    monitorGainNode.connect(audioContext.destination);
     mediaStreamSourceNode.connect(analyserNode);
 
     // Hz of each bar in freq domain
@@ -141,22 +152,28 @@ async function startAudioProcessing() {
         "<p>Time Domain Window = " + (analyserNode.fftSize / audioContext.sampleRate).toFixed(4) + " secs</p>" + // fftsize/samplerate = time
         "<p>Freq Bin Value = " + (freqBinValue).toFixed(4) + "Hz per bin</p>"; // samplerate/fftsize = freqBinCount
 
-    monitorGainNode = audioContext.createGain();
-    monitorGainNode.gain.value = 0;
-    analyserNode.connect(monitorGainNode);
-    try { monitorGainNode.connect(audioContext.destination); } catch (e) { console.log("Listen Error"); }
+    if (!audioChromaDisplayed) {
+        // Create 12 boxes for each chroma note
+        for (let i = 0; i < 12; i++) {
+            const chromaBox = document.createElement('div');
+            chromaBox.classList.add('chromaBox');
+            chromaBox.textContent = scale[i];
+            chromaContainer.appendChild(chromaBox);
+        }
+        audioChromaDisplayed = true;
+    }
 
     // Meyda analyzer for chroma + RMS
-    const meydaBufferSize = 4096;
+    const meydaBufferSize = 1024;
     meydaAnalyzer = Meyda.createMeydaAnalyzer({
         audioContext: audioContext,
         source: mediaStreamSourceNode,
         bufferSize: meydaBufferSize,
-        featureExtractors: ['chroma', 'rms', 'mfcc'],
-        // callback: onMeydaFeaturesCallback
-        callback: features => {
-            console.log(features);
-        }
+        featureExtractors: ['chroma', 'rms'],
+        callback: onMeydaFeaturesCallback
+        // callback: features => {
+        //     console.log(features);
+        // }
     });
     meydaAnalyzer.start();
 
@@ -218,12 +235,17 @@ function stopAudioProcessing() {
 function onMeydaFeaturesCallback(features) {
     // Chroma values represent the strength of the values per note 
     // in an array of 12 note western scale
-    const chroma = features.chroma;
+    const chromaValues = features.chroma;
+    // chromaValues.forEach(element => {
+    //     console.log(element);
+    // });
     const rms = features.rms
 
-    console.log("[RMS] " + rms);
+    // Initial update
+    updateChromaColors(chromaValues);
+
     rmsValue.textContent = rms.toFixed(6);
-    console.log("[MEYDA] features: " + features.chroma);
+    // console.log("[MEYDA] features: " + features.chroma);
 }
 
 
@@ -335,7 +357,9 @@ function drawGraphs() {
  * - https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/createGain
  * - https://github.com/DanielJDufour/fast-max/blob/main/index.js
  **- Auto-Correlation: Musical Examination to Bridge Audio Data and Sheet Music (Paper)
+    - https://dsp.stackexchange.com/questions/386/autocorrelation-in-audio-analysis
  * - https://observablehq.com/@cimi/meyda-analyzer#micAnalyzer
  * - https://meyda.js.org/guides/online-web-audio.html
- * 
+ * - https://developer.mozilla.org/en-US/docs/Web/API/AudioWorklet
+ * -
  */

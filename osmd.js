@@ -1,6 +1,11 @@
 import { getExtension } from './helpers.js';
+import { Midi } from "https://cdn.jsdelivr.net/npm/@tonejs/midi/+esm";
+import WebMscore from 'https://cdn.jsdelivr.net/npm/webmscore/webmscore.mjs';
+
 
 const fileInput = document.getElementById("scoreInput");
+
+// const scoreChromagram = document.getElementById("scoreChromagram");
 
 const zoomValue = document.getElementById("zoomValue");
 const osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(document.getElementById("OSMD"), {
@@ -8,12 +13,20 @@ const osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(document.getElement
     backend: "svg",
 });
 
+/*
+ * Helpers
+ */
+/**
+ * Adjust osmd render zoom level
+ * @param {"+" || "-"} zoomChar 
+ * @returns adjustment in zoom
+ */
 function adjustZoom(zoomChar) {
     if (zoomChar === "+") {
         const scrollY = window.scrollY;
         osmd.zoom += 0.1;
         osmd.render();
-        zoomValue.textContent = "Zoom = " + parseFloat(osmd.zoom).toFixed(1);
+        zoomValue.textContent = parseFloat(osmd.zoom).toFixed(1);
         console.log("Zoom " + zoomChar + " Success");
         window.scrollTo(0, scrollY);
 
@@ -25,16 +38,84 @@ function adjustZoom(zoomChar) {
             const scrollY = window.scrollY;
             osmd.zoom -= 0.1;
             osmd.render();
-            zoomValue.textContent = "Zoom = " + parseFloat(osmd.zoom).toFixed(1);
+            zoomValue.textContent = parseFloat(osmd.zoom).toFixed(1);
             console.log("Zoom - Success");
             window.scrollTo(0, scrollY);
         }
 
     } else {
-        alert("dev left fault in osmd.js/adjustZoom");
-        console.log("dev left fault in osmd.js/adjustZoom");
+        alert("[WARNING] dev left fault in osmd.js/adjustZoom");
+        console.log("[WARNING] dev left fault in osmd.js/adjustZoom");
     }
 }
+
+function drawChromagram(data) {
+
+    const rows = 12
+    const cols = data.length
+
+    const cellSize = 20
+
+    const svg = d3.select("#scoreChromagram")
+        .attr("width", cols * cellSize)
+        .attr("height", rows * cellSize)
+
+    const flat = []
+
+    for (let time = 0; time < cols; time++) {
+        for (let chroma = 0; chroma < rows; chroma++) {
+            flat.push({
+                time: time,
+                chroma: chroma,
+                value: data[time][chroma]
+            })
+        }
+    }
+
+    const color = d3.scaleSequential(d3.interpolateInferno)
+        .domain([0, d3.max(flat, d => d.value)])
+
+    svg.selectAll("rect")
+        .data(flat)
+        .enter()
+        .append("rect")
+        .attr("x", d => d.time * cellSize)
+        .attr("y", d => (11 - d.chroma) * cellSize)
+        .attr("width", cellSize)
+        .attr("height", cellSize)
+        .attr("class", "cell")
+        .attr("fill", d => color(d.value))
+}
+
+function updateExpectedNotes() {
+    const iterator = osmd.cursor.Iterator;
+
+    if (!iterator) return;
+
+    const voiceEntries = iterator.CurrentVoiceEntries;
+
+    if (!voiceEntries || voiceEntries.length === 0) {
+        expectedNotes.textContent = "Rest";
+        return;
+    }
+
+    const notes = [];
+
+    voiceEntries.forEach(voiceEntry => {
+        voiceEntry.Notes.forEach(note => {
+
+            if (!note.Pitch) return;
+
+            // OSMD built-in pitch string
+            const pitchString = note.Pitch.ToString();
+
+            notes.push(pitchString);
+        });
+    });
+
+    expectedNotes.textContent = notes.join(", ");
+}
+
 
 window.addEventListener("DOMContentLoaded", async () => {
     // File input handler
@@ -48,13 +129,12 @@ window.addEventListener("DOMContentLoaded", async () => {
 
         if (fileExtension == "mid") {
             console.log("Midi input | Convert");
-            alert("Midi file uploaded!");
 
             // TODO: OMR/ MIDI -> MusicXML conversion
 
             //* This is chromagram data, not rendering
-            const buffer = await file.arrayBuffer()
-            const midi = new Midi(buffer)
+            const midiData = await file.arrayBuffer()
+            const midi = new Midi(midiData)
 
             const chroma = new Array(12).fill(0)
 
@@ -64,8 +144,20 @@ window.addEventListener("DOMContentLoaded", async () => {
                     chroma[pc] += note.duration
                 })
             })
-            console.log(chroma);
+            console.log("[LOG] Midi chroma: " + chroma);
 
+            //* Midi conversion to Musicxml
+            await WebMscore.ready;
+
+            const midiBytes = new Uint8Array(midiData)
+            const score = await WebMscore.load("midi", midiBytes);
+
+            //! Save method doesnt work on server-less browser implementations
+            const musicxml = await WebMscore.save(score, "musicxml");
+
+            console.log("MusicXML:", musicxml);
+            await osmd.load(musicxml);
+            osmd.render();
 
         } else if (fileExtension == "musicxml" || fileExtension == "mxl") {
             try {
@@ -73,31 +165,61 @@ window.addEventListener("DOMContentLoaded", async () => {
                 osmd.render();
                 osmd.cursor.show();
                 osmd.cursor.reset();
-                console.log("[Log] Success");
+                updateExpectedNotes();
+                console.log("[LOG] Success");
             } catch (err) {
-                console.error("[Error] Failed to load score | ./osmd.js:", err);
+                console.error("[ERROR] Failed to load score | ./osmd.js:", err);
                 alert("Could not load this score file.");
             }
+
+            // Chromagram Data
+            try {
+                const text = await file.text()
+                const xml = new DOMParser().parseFromString(text, "text/xml")
+                const notes = xml.getElementsByTagName("note")
+                const chroma = new Array(12).fill(0)
+                const map = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }
+
+                for (let n of notes) {
+
+                    if (n.getElementsByTagName("rest").length) continue
+
+                    const step = n.getElementsByTagName("step")[0].textContent
+
+                    const alterNode = n.getElementsByTagName("alter")[0]
+                    const alter = alterNode ? parseInt(alterNode.textContent) : 0
+
+                    const pc = (map[step] + alter + 12) % 12
+
+                    chroma[pc] += 1
+                }
+                drawChromagram(chroma);
+                console.log("Chromagram: " + chroma);
+            } catch (err) {
+                console.error("[ERROR] Failed to load chromagram | ./osmd.js:", err);
+                alert("Could not load this score's chromagram");
+            }
         } else {
-            alert("[Warning] Implementation in progress | ./osmd.js");
+            alert("[WARNING] Implementation in progress | ./osmd.js");
             return;
         }
+
     });
 
     // Default Score to be Displayed
     await osmd.load("Scores/Error.musicxml");
     osmd.render();
 
-    zoomValue.textContent = "Zoom = " + parseFloat(osmd.zoom).toFixed(1);
+    zoomValue.textContent = parseFloat(osmd.zoom).toFixed(1);
     osmd.cursor.show();
 
-    document.getElementById("next").onclick = () => osmd.cursor.next();
-    document.getElementById("prev").onclick = () => osmd.cursor.previous();
-    document.getElementById("reset").onclick = () => osmd.cursor.reset();
+    document.getElementById("next").onclick = () => { osmd.cursor.next(); updateExpectedNotes(); };
+    document.getElementById("prev").onclick = () => { osmd.cursor.previous(); updateExpectedNotes(); };
+    document.getElementById("reset").onclick = () => { osmd.cursor.reset(); updateExpectedNotes(); };
 
     window.addEventListener("keydown", (e) => {
-        if (e.key === "ArrowRight" || e.key === "d") osmd.cursor.next();
-        if (e.key === "ArrowLeft" || e.key === "a") osmd.cursor.previous();
+        if (e.key === "ArrowRight" || e.key === "d") { osmd.cursor.next(); updateExpectedNotes(); };
+        if (e.key === "ArrowLeft" || e.key === "a") { osmd.cursor.previous(); updateExpectedNotes(); };
     });
 
     document.getElementById("zoomp").onclick = () => adjustZoom("+");
