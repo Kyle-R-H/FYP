@@ -1,4 +1,4 @@
-import { getExtension } from './helpers.js';
+import { getExtension, freqToNote } from './helpers.js';
 import { Midi } from "https://cdn.jsdelivr.net/npm/@tonejs/midi/+esm";
 import WebMscore from 'https://cdn.jsdelivr.net/npm/webmscore/webmscore.mjs';
 
@@ -15,8 +15,8 @@ const osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(document.getElement
     backend: "svg",
 });
 
-let cursorIndex = 1;
-let expectedNotesList = ["-"];
+// let cursorIndex = 1;
+// let expectedNotesList = ["-"];
 
 /*
  * Helpers
@@ -92,49 +92,40 @@ function drawChromagram(data) {
         .attr("fill", d => color(d.value))
 }
 
-function createNoteList() {
-    expectedNotesList = ["-"];
-
-    const sheet = osmd.Sheet;
-    if (!sheet) return;
-
-    // Iterate through the measures
-    sheet.SourceMeasures.forEach(measure => {
-        // for each measure, get the container of notes from a vertical column in the sheet 
-        measure.VerticalSourceStaffEntryContainers.forEach(container => {
-            const notesAtTime = [];
-            container.StaffEntries.forEach(staffEntry => {
-                staffEntry.VoiceEntries.forEach(voiceEntry => {
-                    voiceEntry.Notes.forEach(note => {
-                        if (!note.Pitch) {
-                            notesAtTime.push("-");
-                        } else {
-                            notesAtTime.push(note.Pitch.ToString());
-                        }
-                    });
-                });
-            });
-            if (notesAtTime.length > 0) {
-                expectedNotesList.push(notesAtTime);
-            }
-        });
-    });
-}
-
 /**
  * 
  * @returns <p> tags of notes at the position of the cursor
  */
 function updateExpectedNotes() {
-    if (expectedNotesList.length === 0) {
+    const iterator = osmd.cursor.Iterator;
+    if (!iterator) {
         expectedNotes.innerHTML = "<p>-</p>";
         return;
     }
-    const notes = expectedNotesList[cursorIndex] || ["-"];
-    expectedNotes.innerHTML = notes.map(note => "<p>" + note + "</p>").join("");
+
+    const voiceEntries = iterator.CurrentVoiceEntries;
+    console.log("VoiceEntries:", iterator.CurrentVoiceEntries);
+    if (!voiceEntries || voiceEntries.length === 0) {
+        expectedNotes.innerHTML = "<p>-</p>";
+        return;
+    }
+
+    const notes = [];
+    voiceEntries.forEach(voiceEntry => {
+        voiceEntry.Notes.forEach(note => {
+            const pitch = note.Pitch;
+            if (!pitch) return;
+            notes.push(freqToNote(pitch.Frequency));
+        });
+    });
+
+    const uniqueNotes = [...new Set(notes)];
+    expectedNotes.innerHTML = uniqueNotes.map(notes => `<p>${notes}</p>`).join("");
 }
 
-
+/**
+ * "Main"
+ */
 window.addEventListener("DOMContentLoaded", async () => {
     // File input handler
     fileInput.addEventListener("change", async (event) => {
@@ -184,8 +175,8 @@ window.addEventListener("DOMContentLoaded", async () => {
                 osmd.cursor.show();
                 osmd.cursor.reset();
 
-                createNoteList();
-                cursorIndex = 1;
+                // createNoteList();
+                // cursorIndex = 1;
                 updateExpectedNotes();
                 console.log("[LOG] Success");
             } catch (err) {
@@ -234,13 +225,13 @@ window.addEventListener("DOMContentLoaded", async () => {
     zoomValue.textContent = parseFloat(osmd.zoom).toFixed(1);
     osmd.cursor.show();
 
-    document.getElementById("next").onclick = () => { osmd.cursor.next(); cursorIndex++; updateExpectedNotes(); console.log("[LOG] Cursor Index = " + cursorIndex); };
-    document.getElementById("prev").onclick = () => { osmd.cursor.previous(); cursorIndex = Math.max(0, cursorIndex - 1); updateExpectedNotes(); console.log("[LOG] Cursor Index = " + cursorIndex); };
-    document.getElementById("reset").onclick = () => { osmd.cursor.reset(); cursorIndex = 1; updateExpectedNotes(); console.log("[LOG] Cursor Index = " + cursorIndex); };
+    document.getElementById("next").onclick = () => { osmd.cursor.next(); updateExpectedNotes(); };
+    document.getElementById("prev").onclick = () => { osmd.cursor.previous(); updateExpectedNotes(); };
+    document.getElementById("reset").onclick = () => { osmd.cursor.reset(); updateExpectedNotes(); };
 
     window.addEventListener("keydown", (e) => {
-        if (e.key === "ArrowRight" || e.key === "d") { osmd.cursor.next(); cursorIndex++; updateExpectedNotes(); console.log("[LOG] Cursor Index = " + cursorIndex); };
-        if (e.key === "ArrowLeft" || e.key === "a") { osmd.cursor.previous(); cursorIndex = Math.max(0, cursorIndex - 1); updateExpectedNotes(); console.log("[LOG] Cursor Index = " + cursorIndex); };
+        if (e.key === "ArrowRight" || e.key === "d") { osmd.cursor.next(); updateExpectedNotes(); };
+        if (e.key === "ArrowLeft" || e.key === "a") { osmd.cursor.previous(); updateExpectedNotes(); };
     });
 
     document.getElementById("zoomp").onclick = () => adjustZoom("+");
