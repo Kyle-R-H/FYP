@@ -5,9 +5,11 @@ import WebMscore from 'https://cdn.jsdelivr.net/npm/webmscore/webmscore.mjs';
 
 const fileInput = document.getElementById("scoreInput");
 
-// const scoreChromagram = document.getElementById("scoreChromagram");
+// Score Chromagram
+const scoreChromagram = document.getElementById("scoreChromagram");
+
+// Score Info
 const zoomValue = document.getElementById("zoomValue");
-const centsValue = document.getElementById("centsValue");
 const expectedNotes = document.getElementById("expectedNotes");
 
 const osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(document.getElementById("OSMD"), {
@@ -23,7 +25,7 @@ const osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(document.getElement
  */
 /**
  * Adjust osmd render zoom level
- * @param {"+" || "-"} zoomChar 
+ * @param {char} zoomChar only accepts '+' and '-' 
  * @returns adjustment in zoom
  */
 function adjustZoom(zoomChar) {
@@ -32,7 +34,7 @@ function adjustZoom(zoomChar) {
         osmd.zoom += 0.1;
         osmd.render();
         zoomValue.textContent = parseFloat(osmd.zoom).toFixed(1);
-        console.log("Zoom " + zoomChar + " Success");
+        console.log("[LOG] Zoom " + zoomChar + " Successfiul");
         window.scrollTo(0, scrollY);
 
     } else if (zoomChar === "-") {
@@ -44,16 +46,22 @@ function adjustZoom(zoomChar) {
             osmd.zoom -= 0.1;
             osmd.render();
             zoomValue.textContent = parseFloat(osmd.zoom).toFixed(1);
-            console.log("Zoom - Success");
+            console.log("[LOG] Zoom " + zoomChar + " Successful");
             window.scrollTo(0, scrollY);
         }
 
     } else {
-        alert("[WARNING] dev left fault in osmd.js/adjustZoom");
-        console.log("[WARNING] dev left fault in osmd.js/adjustZoom");
+        alert("[WARN] dev left fault in osmd.js/adjustZoom");
+        console.log("[WARN] dev left fault in osmd.js/adjustZoom");
     }
 }
 
+/**
+ * TODO: Fix Graphs - Get continuous data to draw
+ * Draw chromagram based on input data
+ * @param {Array} data 
+ * @returns A graph of the input data
+ */
 function drawChromagram(data) {
 
     const rows = 12
@@ -93,7 +101,7 @@ function drawChromagram(data) {
 }
 
 /**
- * 
+ * Get expected notes based on voiceEnteries of the osmd cursor location
  * @returns <p> tags of notes at the position of the cursor
  */
 function updateExpectedNotes() {
@@ -104,7 +112,8 @@ function updateExpectedNotes() {
     }
 
     const voiceEntries = iterator.CurrentVoiceEntries;
-    console.log("VoiceEntries:", iterator.CurrentVoiceEntries);
+    // console.log("VoiceEntries:", iterator.CurrentVoiceEntries);
+
     if (!voiceEntries || voiceEntries.length === 0) {
         expectedNotes.innerHTML = "<p>-</p>";
         return;
@@ -115,7 +124,7 @@ function updateExpectedNotes() {
         voiceEntry.Notes.forEach(note => {
             const pitch = note.Pitch;
             if (!pitch) return;
-            notes.push(freqToNote(pitch.Frequency));
+            notes.push(freqToNote(pitch.Frequency) + " - " + pitch.Frequency.toFixed(2) + "Hz");
         });
     });
 
@@ -174,11 +183,9 @@ window.addEventListener("DOMContentLoaded", async () => {
                 osmd.render();
                 osmd.cursor.show();
                 osmd.cursor.reset();
-
-                // createNoteList();
-                // cursorIndex = 1;
                 updateExpectedNotes();
-                console.log("[LOG] Success");
+
+                console.log("[LOG] MusicXML Load Successful");
             } catch (err) {
                 console.error("[ERROR] Failed to load score | ./osmd.js:", err);
                 alert("Could not load this score file.");
@@ -219,11 +226,18 @@ window.addEventListener("DOMContentLoaded", async () => {
     });
 
     // Default Score to be Displayed
-    await osmd.load("Scores/Error.musicxml");
-    osmd.render();
+    try {
+        await osmd.load("Scores\\12_Variations_of_Twinkle_Twinkle_Little_Star.mxl");
+        osmd.render();
+        osmd.cursor.show();
+        osmd.cursor.reset();
+        updateExpectedNotes();
+    } catch (err) {
+        console.error("[ERROR] Failed to load score | ./osmd.js", err);
+        alert("Could not load score. Please try again or with a differnt score");
+    }
 
     zoomValue.textContent = parseFloat(osmd.zoom).toFixed(1);
-    osmd.cursor.show();
 
     document.getElementById("next").onclick = () => { osmd.cursor.next(); updateExpectedNotes(); };
     document.getElementById("prev").onclick = () => { osmd.cursor.previous(); updateExpectedNotes(); };

@@ -1,3 +1,5 @@
+export const noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+
 /**
  * Check file extension
  */
@@ -17,13 +19,16 @@ export function freqToNote(freq) {
     // Round to 2 decimal places
     freq = freq.toFixed(2);
 
+    // Western tuning based off A 440
     const A4 = 440;
     const midi = Math.round(69 + 12 * Math.log2(freq / A4));
-
-    const noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
     const note = noteNames[midi % 12];
     const octave = Math.floor(midi / 12) - 1;
 
     return `${note}${octave}`;
 }
+
+/* References
+ *- https://en.wikipedia.org/wiki/MIDI_tuning_standard 
+ */
