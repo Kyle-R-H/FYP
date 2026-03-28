@@ -93,27 +93,29 @@ export async function startAudioProcessing() {
             if (frequency < 25 || frequency > 4300) { // A pianos range (which includes the guitar) is between 27.5 - 4186.009Hz based on the frequencies of Ab0 to C8
                 values.audio.frequency = 0;
                 values.audio.rms = rms;
+                values.audio.cents = 0;
             } else {
                 values.audio.frequency = frequency;
                 values.audio.rms = rms;
+                values.audio.cents = calulateCents(frequency).cents;
             }
 
-            const centVal = calulateCents(values.audio.frequency);
-            values.audio.cents = centVal.cents;
         }
 
 
-        if (compareNotes()) {
+        if (values.score.expectedFreqs.length === 0) {
+            console.log("[SKIP] Rest");
+            osmd.cursor.next();
+            getExpectedNotes();
+        } else if (compareNotes()) {
             console.log("[COMPARE] Match");
             osmd.cursor.next();
             getExpectedNotes();
-
         } else {
             // console.log("[COMPARE] False");
-
         }
 
-        updateSignalData({frequency: values.audio.frequency, rms: values.audio.rms, cents: values.audio.cents});
+        updateSignalData({ frequency: values.audio.frequency, rms: values.audio.rms, cents: values.audio.cents });
     }
 
     // Hz of each bar in freq domain
@@ -137,9 +139,6 @@ export async function startAudioProcessing() {
         bufferSize: meydaBufferSize,
         featureExtractors: ['chroma', 'rms'],
         callback: onMeydaFeaturesCallback
-        // callback: features => {
-        //     console.log(features);
-        // }
     });
     meydaAnalyzer.start();
 
@@ -195,6 +194,7 @@ export function stopAudioProcessing() {
     updateAudioControlButtons(false);
 
     // Display Data in info tag
+    const info = document.getElementById("info");
     info.textContent = "";
     console.log("[LOG] Microphone stopped");
 }
@@ -215,15 +215,6 @@ function onMeydaFeaturesCallback(features) {
         return -1;
     }
     updateMeydaRMS(rms);
-
-    // Initial update
-
-
-    // chromaValues.forEach(element => {
-    //     console.log(element);
-    // });
-
-    // console.log("[MEYDA] features: " + features.chroma);
 }
 
 

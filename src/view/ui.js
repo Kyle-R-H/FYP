@@ -86,7 +86,10 @@ export function updateMeydaRMS(meyRMS) {
     meydaRMS.textContent = meyRMS.toFixed(4);
 }
 
-
+/**
+ * Updates expected notes element with string of detected notes
+ * @param {String} noteString 
+ */
 export function updateExpectedNotes(noteString) {
     const expectedNotes = document.getElementById("expectedNotes");
     expectedNotes.innerHTML = noteString;
@@ -112,6 +115,12 @@ export function updateAudioControlButtons(hidden) {
  */
 export function updateChromaColors(values) {
     const boxes = document.querySelectorAll('.chromaBox');
+
+    if (!boxes.length) {
+        console.warn("[WARN] No chroma boxes found");
+        return;
+    }
+
     boxes.forEach((box, i) => {
         const value = values[i];
         // white = 1, green = 0
