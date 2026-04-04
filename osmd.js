@@ -1,5 +1,3 @@
-// import { OpenSheetMusicDisplay } from "./node_modules/opensheetmusicdisplay/build/dist/src/OpenSheetMusicDisplay/OpenSheetMusicDisplay";
-
 /**
  * Check file extension
  */
@@ -24,12 +22,6 @@ window.addEventListener("DOMContentLoaded", async () => {
         console.log("filetype: " + fileType);
         if (!file) return;
 
-        // if (fileType == ".mid") {
-        //     console.log("Midi input | Convert");
-        //     alert("Midi file uploaded!");
-        //     // TODO: OMR/ MIDI -> MusicXML conversion
-
-        // } else 
         if (fileType == "musicxml" || fileType == "mxl") {
             try {
                 await osmd.load(file);

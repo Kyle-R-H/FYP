@@ -21,7 +21,6 @@ let audioContext = null;                  // WebAudio AudioContext
 let mediaStreamSourceNode = null;         // MediaStreamAudioSourceNode for mic input
 let animationFrameRequestId = null;
 let analyserNode = null;                  // WebAudio AnalyserNode used for raw waveform + pitch
-// let meydaAnalyzerInstance = null;         // Meyda analyzer
 let monitorGainNode = null;
 let monitoringEnabled = false;
 
@@ -45,19 +44,7 @@ async function startAudioProcessing() {
     analyserNode.connect(monitorGainNode);
     try { monitorGainNode.connect(audioContext.destination); } catch (e) { console.log("Listen Error"); }
 
-    // // Meyda analyzer for chroma + RMS
-    // const meydaBufferSize = 4096;
-    // meydaAnalyzerInstance = Meyda.createMeydaAnalyzer({
-    //     audioContext: audioContext,
-    //     source: mediaStreamSourceNode,
-    //     bufferSize: meydaBufferSize,
-    //     featureExtractors: ['chroma', 'rms'],
-    //     callback: features => onMeydaFeaturesCallback(features)
-    // });
-    // meydaAnalyzerInstance.start();
-
     if (!animationFrameRequestId) drawGraphs();
-    // logDebugMessage('Microphone started — audioCtx state: ' + audioContext.state);
 }
 function toggleMonitoring() {
     if (!monitorGainNode) return;
@@ -76,13 +63,11 @@ function toggleMonitoring() {
 }
 
 function stopAudioProcessing() {
-    // if (meydaAnalyzerInstance) { try { meydaAnalyzerInstance.stop(); } catch (e) { } meydaAnalyzerInstance = null; }
-    // if (animationFrameRequestId) { cancelAnimationFrame(animationFrameRequestId); animationFrameRequestId = null; }
-    // if (monitorGainNode) { try { monitorGainNode.disconnect(); } catch (e) { } monitorGainNode = null; }
+    if (animationFrameRequestId) { cancelAnimationFrame(animationFrameRequestId); animationFrameRequestId = null; }
+    if (monitorGainNode) { try { monitorGainNode.disconnect(); } catch (e) { } monitorGainNode = null; }
     if (analyserNode) { try { analyserNode.disconnect(); } catch (e) { } analyserNode = null; }
     if (mediaStreamSourceNode) { try { mediaStreamSourceNode.disconnect(); console.log("disconnected"); } catch (e) { console.log("ERR: " + e); } mediaStreamSourceNode = null; console.log("medastreamosurcenode = Null"); }
     if (audioContext) { try { audioContext.close(); } catch (e) { } audioContext = null; }
-    // logDebugMessage('Microphone stopped');
 }
 
 /**
@@ -98,7 +83,6 @@ function drawTimeDoaminGraph() {
 
     const buffer = new Float32Array(analyserNode.fftSize);
     analyserNode.getFloatTimeDomainData(buffer);
-    // console.log("Buffer\nAs String" + buffer.toString());
 
     // draw time-domain waveform
     timeDomainContext.fillStyle = '#ffffff';
@@ -114,19 +98,6 @@ function drawTimeDoaminGraph() {
         else timeDomainContext.lineTo(x, y);
     }
     timeDomainContext.stroke();
-
-    // // compute RMS for UI
-    // let rms = 0;
-    // for (let sampleIndex = 0; sampleIndex < buffer.length; sampleIndex++) rms += buffer[sampleIndex] * buffer[sampleIndex];
-    // rms = Math.sqrt(rms / buffer.length);
-    // rmsLabel.textContent = rms.toFixed(3);
-    // const rmsPercent = Math.min(1, rms * 5);
-    // rmsFillBar.style.width = (rmsPercent * 100) + '%';
-
-    // pitch detection
-    // const detectedFrequencyHz = autoCorrelateAndFindFrequency(buffer, audioContext.sampleRate);
-    // if (detectedFrequencyHz > 0) detectedFrequencyLabel.textContent = detectedFrequencyHz.toFixed(1);
-    // else detectedFrequencyLabel.textContent = '—';
 
     animationFrameRequestId = requestAnimationFrame(drawTimeDoaminGraph);
 }
@@ -147,7 +118,6 @@ function drawFrequencyBarGraph() {
     // draw time-domain waveform
     FrequencyBarContext.fillStyle = '#ffffff';
     FrequencyBarContext.fillRect(0, 0, FrequencyBarCanvas.width, FrequencyBarCanvas.height);
-    // FrequencyBarContext.strokeStyle = '#2a6';
     const barWidth = (FrequencyBarCanvas.width / buffer.length) * 2.5;
     let x = 0;
 
@@ -170,13 +140,6 @@ function drawGraphs() {
     drawTimeDoaminGraph();
     drawFrequencyBarGraph();
 }
-
-/**
- * Data
- */
-// console.log("AudioContext state:", audioContext.state);
-// console.log("Sample Rate:", audioContext.sampleRate);
-// console.log("FFT Size:", analyserNode.fftSize);
 
 /**
  * References:
