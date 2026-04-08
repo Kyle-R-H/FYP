@@ -76,3 +76,9 @@
     margin-block-start: 0em;
     font-size: 15px;
 }
+
+#freqNoteValue p{
+    margin-block-end: 0em;
+    margin-block-start: 0em;
+    font-size: 15px;
+}

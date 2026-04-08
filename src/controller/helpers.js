@@ -10,51 +10,67 @@ export function getExtension(filename) {
 }
 
 /**
- * Convert frequency to MIDI
- * @param {float} frequency
- * @returns MIDI value of Frequency
- */
-export function freqToMidi(frequency) {
-    return 69 + 12 * Math.log2(frequency / 440);
-}
-
-/**
  * Convert MIDI to Frequency
  * @param {float} midi 
  * @returns Frequency value of MIDI
  */
 export function midiToFreq(midi) {
     // Western tuning based off A 440
-    const A4 = 440;
-    return A4 * Math.pow(2, (midi - 69) / 12);
+    return 440 * Math.pow(2, (midi - 69) / 12);
+}
+
+/**
+ * Convert freq to MIDI
+ * @param {float} freq
+ * @returns MIDI value of Frequency
+ */
+export function freqToMidi(freq) {
+    return 69 + 12 * Math.log2(freq / 440);
 }
 
 /**
  * Converts Freqency to Midi notes to Note Names
  * @returns Note Name
  */
-export function freqToNote(frequency) {
-    if (!frequency || frequency <= 0) return "-";
+export function freqToNote(freq) {
+    if (!freq || freq <= 0) return "-";
 
-    const midi = Math.round(freqToMidi(frequency));
+    const midi = Math.round(freqToMidi(freq));
     const note = noteNames[midi % 12];
     const octave = Math.floor(midi / 12) - 1;
 
     return `${note}${octave}`;
 }
 
-export function calulateCents(frequency) {
-    const midi = freqToMidi(frequency);
-    const nearestMidi = Math.round(midi);
+export function freqToPitchClass(freq) {
+    return ((Math.round(freqToMidi(freq)) % 12) + 12) % 12;
+}
+
+export function freqsToChroma(freqs) {
+    const chroma = new Array(12).fill(0);
+    for (const f of freqs) {
+        if (f > 0) chroma[freqToPitchClass(f)]++;
+    }
+    return normalizeVector(chroma);
+}
+
+export function calulateCents(freq) {
+    const nearestMidi = Math.round(freqToMidi(freq));
     const nearestFreq = midiToFreq(nearestMidi);
-
-    const cents = 1200 * Math.log2(frequency / nearestFreq);
-
     return {
-        cents,
+        cents: 1200 * Math.log2(freq / nearestFreq),
         nearestMidi,
         nearestFreq
     };
+}
+
+/**
+ * L1 Normalisation
+ */
+export function normalizeVector(vec) {
+    const sum = vec.reduce((a, b) => a + b, 0);
+    if (sum === 0) return vec.slice();
+    else return vec.map(v => v / sum);
 }
 
 /** 
@@ -85,5 +101,7 @@ export function fastMaxMin(array) {
 }
 
 /* References
- *- https://en.wikipedia.org/wiki/MIDI_tuning_standard 
+ * - https://en.wikipedia.org/wiki/MIDI_tuning_standard 
+ * - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce
+ * -
  */

@@ -51,7 +51,5 @@ project/
 ### 18/03/26
 - Display Score expected notes from osmd cursor
 
-## Sources
-List of external items included/used for implementation/ inspiration
-### Image of Piano Key Frequencies
-https://upload.wikimedia.org/wikipedia/commons/a/ad/Piano_key_frequencies.png
+## 28/03/26
+- Monophonic Pitch Detection

@@ -21,6 +21,7 @@
   "homepage": "https://github.com/Kyle-R-H/FYP#readme",
   "dependencies": {
     "cors": "^2.8.6",
+    "dynamic-time-warping": "^1.0.0",
     "express": "^5.2.1",
     "multer": "^2.1.1"
   }

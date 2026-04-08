@@ -3,6 +3,8 @@ import { adjustZoom, getExpectedNotes, osmd } from "/controller/score/osmdContro
 import { noteNames, freqToNote } from "/controller/helpers.js";
 import { toggleAudioListen, startAudioProcessing, stopAudioProcessing } from "/controller/audio/audioController.js";
 
+const checkServer = document.getElementById("checkServer");
+const toggleInfo = document.getElementById("toggleInfo")
 const audioListen = document.getElementById("audioListen");
 const audioStart = document.getElementById("audioStart");
 const audioStop = document.getElementById("audioStop");
@@ -12,15 +14,29 @@ let audioChromaDisplayed = false;  // Only load the audio chroma boxes once
 export function initUI() {
     createChromaContainer();
 
-    // Chromagram
-    const audioChromagram = document.getElementById("audioChromagram");
-    const scoreChromagram = document.getElementById("scoreChromagram");
+    // // Chromagram
+    // const audioChromagram = document.getElementById("audioChromagram");
+    // const scoreChromagram = document.getElementById("scoreChromagram");
 
-    document.getElementById("checkServer").onclick = async () => {
-        const response = await fetch("http://localhost:5000/test", { method: "POST" });
-        console.log("[SERVER] Result: " + response.status);
-        console.dir("[SERVER] " + response.text());
+    checkServer.onclick = async () => {
+        try {
+
+            const response = await fetch("http://localhost:5000/test", { method: "POST" });
+            console.log("[SERVER] Result: " + response.status);
+            console.dir("[SERVER] " + response.text());
+            if (response.ok) {
+                checkServer.style.backgroundColor = "green";
+                checkServer.style.color = "white";
+            }
+        } catch (e) {
+            if (!response.ok) {
+                checkServer.style.backgroundColor = "maroon";
+                checkServer.style.color = "white";
+            }
+        }
     }
+
+    toggleInfo.onclick = () => updateInfoVisibility(document.getElementById("info"));
 
     document.getElementById("next").onclick = () => {
         osmd.cursor.next();
@@ -69,14 +85,12 @@ function createChromaContainer() {
 }
 
 export function updateSignalData({ frequency, rms, cents }) {
-    const fundamentalFrequencyValue = document.getElementById("fundaFreqValue");
     const frequencyNoteValue = document.getElementById("freqNoteValue");
     const centsValue = document.getElementById("centsValue");
     const rmsValue = document.getElementById("rmsValue");
 
     // console.log("[DATA] ", frequency);
-    fundamentalFrequencyValue.textContent = frequency.toFixed(1);
-    frequencyNoteValue.textContent = freqToNote(frequency);
+    frequencyNoteValue.textContent = freqToNote(frequency) + " - " + frequency.toFixed(1) + "Hz";
     centsValue.textContent = Math.round(cents);
     rmsValue.textContent = rms.toFixed(4);
 }
@@ -98,14 +112,22 @@ export function updateExpectedNotes(noteString) {
 
 export function updateAudioControlButtons(hidden) {
     if (hidden) {
-        audioStop.hidden = false;
         audioStart.hidden = true;
+        toggleInfo.hidden = false;
+        audioStop.hidden = false;
         audioListen.hidden = false;
     } else {
-        audioStop.hidden = true;
         audioStart.hidden = false;
+        toggleInfo.hidden = true;
+        audioStop.hidden = true;
         audioListen.hidden = true;
     }
+}
+
+export function updateInfoVisibility(info) {
+    if (info.hidden) {
+        info.hidden = false;
+    } else { info.hidden = true; }
 }
 
 /**

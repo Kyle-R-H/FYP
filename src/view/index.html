@@ -11,11 +11,14 @@
     <!-- D3.js is for graphing -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
 
-    <!-- OpenSheetMusicDisplay Online import as I couldnt get the offline to work using npm nor manual import -->
+    <!-- OpenSheetMusicDisplay: Online import as I couldnt get the offline to work using npm nor manual import -->
     <script src="https://cdn.jsdelivr.net/npm/opensheetmusicdisplay/build/opensheetmusicdisplay.min.js"></script>
 
     <!-- Meyda: Audio processing -->
     <script src="https://cdn.jsdelivr.net/npm/meyda@5.6.3/dist/web/meyda.min.js"></script>
+
+    <!-- dynamic-time-warping: aliging score and audio -->
+    <script src="https://cdn.jsdelivr.net/npm/dynamic-time-warping@1.0.0/src/dynamic-time-warping.js"></script>
 
     <script type="module" src="/main.js"></script>
     <script type="module" src="/view/ui.js"></script>
@@ -36,41 +39,38 @@
 
     <!-- Misc Data Info -->
     <button id="checkServer">Check Server</button>
-    <div id="info">
+    <button hidden id="toggleInfo">Toggle Audio Info</button>
+    <div hidden id="info">
     </div>
     <hr>
 
-    <!-- Time domain Graph: TODO - Update with more accurate data -->
+    <!-- Domain Graphs: TODO - Update info with more accurate data from worklet -->
     <div class="hListGraph">
         <div class="domainDiv">
             <h3>Time Domain (Amplitude/Time)</h3>
             <canvas id="timeDomainGraph" width="250" height="100" style="border: 1px solid #000000;"></canvas>
         </div>
-
-        <div class="graphInfo" id="TDInfo">
+        <!-- <div class="graphInfo" id="TDInfo">
             <h4>Amplitude</h4>
-        </div>
-    </div>
+        </div> -->
 
-    <!-- Frequency domain Graph: TODO - Update with more accurate data -->
-    <div class="hListGraph">
         <div class="domainDiv">
             <h3>Frequency Domain (Amplitude/Freq)</h3>
             <canvas id="frequencyDomainGraph" width="250" height="100" style="border: 1px solid #000000;"></canvas>
         </div>
-        <div class="graphInfo" id="FDInfo">
+        <!-- <div class="graphInfo" id="FDInfo">
             <h4>Amplitude</h4>
-        </div>
+        </div> -->
     </div>
     <hr />
 
-    <!-- Chromagrams -->
-    <h3>Score Chromagram</h3>
+    <!-- Chromagrams: Could not get graph working nor the data available -->
+    <!-- <h3>Score Chromagram</h3>
     <svg id="scoreChromagram"></svg>
 
     <h3>Audio Chromagram</h3>
     <svg id="AudioChromagram"></svg>
-    <hr />
+    <hr /> -->
 
     <!-- Signal Data and Audio Chroma Valuew -->
     <h3 style="margin-block-end: 5px;">Signal Data</h3>
@@ -84,19 +84,11 @@
             <p id="centsValue">-</p>
         </div>
         <div>
-            <p style="font-weight: bolder;">F-Freq</p>
-            <p id="fundaFreqValue">-</p>
-        </div>
-        <div>
-            <p style="font-weight: bolder;">Freq Note</p>
-            <p id="freqNoteValue">-</p>
-        </div>
-        <div>
-            <p style="font-weight: bolder;">Manual RMS</p>
+            <p style="font-weight: bolder;">Monophonic RMS</p>
             <p id="rmsValue">-</p>
         </div>
         <div>
-            <p style="font-weight: bolder;">Meyda RMS</p>
+            <p style="font-weight: bolder;">Polyphonic RMS</p>
             <p id="meydaRmsValue">-</p>
         </div>
     </div>
@@ -105,20 +97,15 @@
 
     <!-- Score, Controls and Expected Notes -->
     <div class="hListStick">
-        <!-- Readd margin after removing for highlight -->
         <div class="hList" style="margin-left: 8px; margin-right: 8px;">
             <div>
                 <div class="hList">
                     <h3 style="margin-block-end: 0%;">OpenSheetMusicDisplay Score</h3>
 
-                    <!--^ Upload Score and Temp Audio -->
+                    <!-- Upload Score -->
                     <div id="scoreAudioInputs" style="align-content: end;">
-                        <!-- <h3>Score Input</h3> -->
                         <input title="Score Input" id="scoreInput" type="file"
                             accept=".musicxml, .mxl, .pdf, .png, .jpg, .mid, .midi" />
-
-                        <!-- TODO: Add audio input file types -->
-                        <!-- <input title="Audio Input" id="audioInput" type="file" accept=".wav, .mp4" /> -->
                     </div>
                 </div>
 
@@ -129,7 +116,6 @@
                     <button id="zoomm" type="button">-</button>
 
                     <h3>Cursor:</h3>
-                    <!-- <button id="showHide">show/hide</button> -->
                     <button id="reset">Reset</button>
                     <button id="prev">Prev</button>
                     <button id="next">Next</button>
@@ -138,15 +124,20 @@
                     <button id="audioListen" style="background-color: maroon; color: white;" hidden>Listen</button>
                     <button id="audioStart">Start</button>
                     <button id="audioStop" hidden>Stop</button>
-                    <!-- <button id="start">Start</button> -->
                 </div>
             </div>
             <div>
-                <div>
-                    <h3 style="margin-block-end: .5em;">Expected Notes</h3>
-                    <div id="expectedNotes" style="margin-bottom: .5em;">
-                        <p>-</p>
-                    </div>
+
+                <h3 style="margin-block-end: .5em;">Expected Notes</h3>
+                <div id="expectedNotes" style="margin-bottom: .5em;">
+                    <p>-</p>
+                </div>
+
+            </div>
+            <div>
+                <h3 style="margin-block-end: .5em;">Detected Notes</h3>
+                <div id="freqNoteValue" style="margin-bottom: .5em;">
+                    <p>-</p>
                 </div>
             </div>
         </div>

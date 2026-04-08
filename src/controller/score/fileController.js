@@ -37,6 +37,9 @@ export async function inputFileController(event) {
 
         if (musicxmlArrayBuffer) {
             const musicxmlText = new TextDecoder().decode(musicxmlArrayBuffer);
+            if (osmd && osmd.Sheet) {
+                osmd.clear();
+            }
             await osmd.load(musicxmlText);
             osmdRender();
         }
@@ -63,16 +66,21 @@ export async function inputFileController(event) {
         const musicxmlArrayBuffer = await fileConversion(file, "score");
         if (musicxmlArrayBuffer) {
             const musicxmlText = new TextDecoder().decode(musicxmlArrayBuffer);
+            if (osmd && osmd.Sheet) {
+                osmd.clear();
+            }
             await osmd.load(musicxmlText);
             osmdRender();
         }
 
     } else if (fileExtension == "musicxml" || fileExtension == "mxl") {
         try {
+            if (osmd && osmd.Sheet) {
+                osmd.clear();
+            }
             await osmd.load(file);
-            expectedNotes.textContent = "";
+            expectedNotes.textContent = "-";
             osmdRender();
-
             console.log("[LOG] MusicXML Load Successful");
         } catch (err) {
             console.error("[ERROR] Failed to load score | ./osmd.js:", err);
