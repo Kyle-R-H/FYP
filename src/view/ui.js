@@ -2,6 +2,7 @@
 import { adjustZoom, getExpectedNotes, osmd } from "/controller/score/osmdController.js";
 import { noteNames, freqToNote } from "/controller/helpers.js";
 import { toggleAudioListen, startAudioProcessing, stopAudioProcessing } from "/controller/audio/audioController.js";
+import { values } from "../model/values.js";
 
 const checkServer = document.getElementById("checkServer");
 const toggleInfo = document.getElementById("toggleInfo")
@@ -53,7 +54,7 @@ export function initUI() {
     const zoomValue = document.getElementById("zoomValue");
     // Init update on window
     zoomValue.textContent = osmd.zoom.toFixed(1);
-    
+
     document.getElementById("zoomp").onclick = () => {
         adjustZoom("+");
         zoomValue.textContent = osmd.zoom.toFixed(1);
@@ -75,6 +76,23 @@ export function initUI() {
     audioListen.onclick = () => toggleAudioListen(audioListen);
     audioStart.onclick = startAudioProcessing;
     audioStop.onclick = stopAudioProcessing;
+
+    const methodSelect = document.getElementById("dtwMethod");
+    const thresholdSlider = document.getElementById("dtwThreshold");
+    const thresholdValue = document.getElementById("thresholdValue");
+
+    // Method change
+    methodSelect.onchange = () => {
+        values.dtw.method = methodSelect.value;
+        console.log("[DTW] Method:", values.dtw.method);
+    };
+
+    // Threshold change
+    thresholdSlider.oninput = () => {
+        const val = parseFloat(thresholdSlider.value);
+        values.dtw.threshold = val;
+        thresholdValue.textContent = val.toFixed(2);
+    };
 }
 
 

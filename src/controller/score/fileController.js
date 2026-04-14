@@ -6,7 +6,8 @@ export async function loadDefaultScore() {
     // Default Score to be Displayed
     try {
         // await osmd.load("/input/MusicXML/Fur_Elise.mxl");
-        await osmd.load("/input/MusicXML/Error.musicxml");
+        await osmd.load("/input/C_Test.musicxml");
+        // await osmd.load("/input/MusicXML/Error.musicxml");
         updateExpectedNotes("<p>-</p>");
         osmdRender();
 

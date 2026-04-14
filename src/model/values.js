@@ -9,5 +9,9 @@ export const values = {
     score: {
         expectedFreqs: [],
         chroma: new Array(12).fill(0),
+    },
+    dtw: {
+        method: "cosine",
+        threshold: 0.20
     }
 }

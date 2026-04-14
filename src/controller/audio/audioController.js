@@ -97,8 +97,11 @@ export async function startAudioProcessing() {
         } else if (compareNotesData.result) {
             consecutiveMatches++;
             if (consecutiveMatches >= 3) { // 3 are the expected matches of the audio to the score so it doesnt accidently update ntoe as often
-                console.log("[COMPARE] Match");
-                // console.log("[TESTING], Pears, "+ compareNotesData.dist+", "+ compareNotesData.norm);
+                // console.log("[COMPARE] Match");
+                console.log(
+                    `[DTW] method=${compareNotesData.method} | dist=${compareNotesData.dist.toFixed(3)} | norm=${compareNotesData.norm.toFixed(3)} | threshold=${compareNotesData.threshold} | consecutiveMatches=${consecutiveMatches}`
+                );
+
                 osmd.cursor.next();
                 getExpectedNotes();
                 consecutiveMatches = 0;
@@ -106,7 +109,7 @@ export async function startAudioProcessing() {
         } else {
             consecutiveMatches = 0;
         }
-        
+
         updateSignalData({ frequency: values.audio.frequency, rms: values.audio.rms, cents: values.audio.cents });
     }
 
@@ -116,10 +119,10 @@ export async function startAudioProcessing() {
     // Display Data in info tag
     const info = document.getElementById("info");
     info.innerHTML = "<p>Sample Rate = " + audioContext.sampleRate + "</p>" +
-    "<p>AudioContext state = " + audioContext.state + "</p>" +
-    "<p>FFT Size =" + analyserNode.fftSize + "</p>" +
-    "<p>Time Domain Window = " + (analyserNode.fftSize / audioContext.sampleRate).toFixed(4) + " secs</p>" + // fftsize/samplerate = time
-    "<p>Freq Bin Value = " + (freqBinValue).toFixed(4) + "Hz per bin</p>"; // samplerate/fftsize = freqBinCount
+        "<p>AudioContext state = " + audioContext.state + "</p>" +
+        "<p>FFT Size =" + analyserNode.fftSize + "</p>" +
+        "<p>Time Domain Window = " + (analyserNode.fftSize / audioContext.sampleRate).toFixed(4) + " secs</p>" + // fftsize/samplerate = time
+        "<p>Freq Bin Value = " + (freqBinValue).toFixed(4) + "Hz per bin</p>"; // samplerate/fftsize = freqBinCount
 
 
     // Meyda analyzer for chroma + RMS

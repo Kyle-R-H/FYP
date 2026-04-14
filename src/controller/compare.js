@@ -122,6 +122,19 @@ export function pearsonDistance(a, b) {
     return 1 - (numerator / denominator);
 }
 
+function getDistanceMethod(name) {
+    switch (name) {
+        case "ssd": return sumofSquaredDifference;
+        case "euclidean": return euclideanDistance;
+        case "manhattan": return manhattanDistance;
+        case "chebyshev": return chebyshevDistance;
+        case "minkowski": return (a, b) => minkowskiDistance(a, b, 1.5);
+        case "canberra": return canberraDistance;
+        case "pearson": return pearsonDistance;
+        case "cosine":
+        default: return cosineDistance;
+    }
+}
 
 /**
  * Compares the two chroma feature arrays from audio and score via DTW
@@ -146,11 +159,11 @@ export function compareNotes() {
 
 
     const expectedChromaHistory = detectedChromaHistory.map(() => [...expectedChroma]);
-
+    let method = getDistanceMethod(values.dtw.method);
     const dtw = new DynamicTimeWarping(
         detectedChromaHistory,      // 12 chroma values
         expectedChromaHistory,      // 12 chroma values
-        cosineDistance              // Method of comparing chroma vectors
+        method                      // Method of comparing chroma vectors
     );
 
     // "the distance of the dynamic time warping as float"
@@ -161,7 +174,15 @@ export function compareNotes() {
     // console.log("[COMPARE] Normalized distance:", normalisation);
 
     // Normalising 
-    return {result: (normalisation) < 0.20, dist: distance, norm: normalisation};
+    const threshold = values.dtw.threshold;
+
+    return {
+        result: normalisation < threshold,
+        dist: distance,
+        norm: normalisation,
+        threshold: threshold,
+        method: values.dtw.method
+    };
 }
 
 
