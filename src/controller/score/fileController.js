@@ -1,12 +1,12 @@
 import { updateExpectedNotes } from "/view/ui.js";
 import { getExtension } from "../helpers.js";
-import { osmd, osmdRender } from "./osmdController.js";
+import { osmd, osmdRender, fileConversion } from "./osmdController.js";
 
 export async function loadDefaultScore() {
     // Default Score to be Displayed
     try {
-        // await osmd.load("/input/MusicXML/La_Campanella_-_Grandes_Etudes_de_Paganini_No._3_-_Franz_Liszt.mxl");
-        await osmd.load("/input/MusicXML/error.musicxml");
+        // await osmd.load("/input/MusicXML/Fur_Elise.mxl");
+        await osmd.load("/input/MusicXML/Error.musicxml");
         updateExpectedNotes("<p>-</p>");
         osmdRender();
 

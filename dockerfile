@@ -23,23 +23,24 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
 WORKDIR /app
 
 # Install Node dependencies
-COPY package.json .
+COPY package*.json ./
 RUN npm install
 
 # Copy app
-COPY server.js index.html ./
-COPY CSS ./CSS
-COPY JS ./JS
-COPY Scores ./Scores
+COPY src ./src
+COPY input ./input
+COPY server.js ./
+COPY tmp ./tmp
 
 # Create tmp folder
-RUN mkdir -p tmp
+RUN mkdir -p /app/tmp
 
 # Install Audiveris
 WORKDIR /tmp
 RUN wget https://github.com/Audiveris/audiveris/releases/download/5.10.1/Audiveris-5.10.1-ubuntu22.04-x86_64.deb -O audiveris.deb \
     && mkdir -p /opt/audiveris \
-    && dpkg-deb -x audiveris.deb /opt/audiveris
+    && dpkg-deb -x audiveris.deb /opt/audiveris \
+    && rm audiveris.deb
 
 
 # Back to app

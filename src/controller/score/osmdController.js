@@ -24,8 +24,7 @@ export function adjustZoom(zoomChar) {
     if (zoomChar === "+") {
         osmd.zoom += 0.1;
         osmd.render();
-        zoomValue.textContent = parseFloat(osmd.zoom).toFixed(1);
-        console.log("[LOG] Zoom " + zoomChar + " Successfiul");
+        console.log("[LOG] Zoom " + zoomChar + " Successful");
         window.scrollTo(0, scrollY);
 
     } else if (zoomChar === "-") {
@@ -35,7 +34,6 @@ export function adjustZoom(zoomChar) {
         } else {
             osmd.zoom -= 0.1;
             osmd.render();
-            zoomValue.textContent = parseFloat(osmd.zoom).toFixed(1);
             console.log("[LOG] Zoom " + zoomChar + " Successful");
             window.scrollTo(0, scrollY);
         }

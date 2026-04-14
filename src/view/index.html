@@ -35,35 +35,36 @@
     <h1 style="margin-block-start: 0; margin-block-end: .5em;">
         Real-time Interactive Music Score Tracking Using Live Microphone Input
     </h1>
-    <hr />
-
-    <!-- Misc Data Info -->
-    <button id="checkServer">Check Server</button>
-    <button hidden id="toggleInfo">Toggle Audio Info</button>
-    <div hidden id="info">
-    </div>
-    <hr>
-
-    <!-- Domain Graphs: TODO - Update info with more accurate data from worklet -->
-    <div class="hListGraph">
-        <div class="domainDiv">
-            <h3>Time Domain (Amplitude/Time)</h3>
-            <canvas id="timeDomainGraph" width="250" height="100" style="border: 1px solid #000000;"></canvas>
+    <details>
+        <summary>Information & Domain Graphs</summary>
+        <hr />
+        <!-- Misc Data Info -->
+        <button id="checkServer">Check Server</button>
+        <button hidden id="toggleInfo">Toggle Audio Info</button>
+        <div hidden id="info">
         </div>
-        <!-- <div class="graphInfo" id="TDInfo">
+        <hr>
+
+        <!-- Domain Graphs: TODO - Update info with more accurate data from worklet -->
+        <div class="hListGraph">
+            <div class="domainDiv">
+                <h3>Time Domain (Amplitude/Time)</h3>
+                <canvas id="timeDomainGraph" width="250" height="100" style="border: 1px solid #000000;"></canvas>
+            </div>
+            <!-- <div class="graphInfo" id="TDInfo">
             <h4>Amplitude</h4>
         </div> -->
 
-        <div class="domainDiv">
-            <h3>Frequency Domain (Amplitude/Freq)</h3>
-            <canvas id="frequencyDomainGraph" width="250" height="100" style="border: 1px solid #000000;"></canvas>
-        </div>
-        <!-- <div class="graphInfo" id="FDInfo">
+            <div class="domainDiv">
+                <h3>Frequency Domain (Amplitude/Freq)</h3>
+                <canvas id="frequencyDomainGraph" width="250" height="100" style="border: 1px solid #000000;"></canvas>
+            </div>
+            <!-- <div class="graphInfo" id="FDInfo">
             <h4>Amplitude</h4>
         </div> -->
-    </div>
+        </div>
+    </details>
     <hr />
-
     <!-- Chromagrams: Could not get graph working nor the data available -->
     <!-- <h3>Score Chromagram</h3>
     <svg id="scoreChromagram"></svg>
@@ -111,9 +112,9 @@
 
                 <div class="hList" style="align-items: center; gap: 8px;">
                     <h3>Zoom:</h3>
-                    <button id="zoomp" type="button">+</button>
-                    <p id="zoomValue"></p>
                     <button id="zoomm" type="button">-</button>
+                    <p id="zoomValue"></p>
+                    <button id="zoomp" type="button">+</button>
 
                     <h3>Cursor:</h3>
                     <button id="reset">Reset</button>

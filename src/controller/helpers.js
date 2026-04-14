@@ -42,6 +42,11 @@ export function freqToNote(freq) {
     return `${note}${octave}`;
 }
 
+/**
+ * Converts Freq to MIDI, rounds the MIDI value, % 12 for pitch classes, + 12 to remove negatives, % corrects values to [0-11]
+ * @param {float} freq 
+ * @returns 
+ */
 export function freqToPitchClass(freq) {
     return ((Math.round(freqToMidi(freq)) % 12) + 12) % 12;
 }

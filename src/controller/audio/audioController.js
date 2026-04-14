@@ -89,15 +89,16 @@ export async function startAudioProcessing() {
             }
         }
 
-
+        let compareNotesData = compareNotes();
         if (values.score.expectedFreqs.length === 0) {
             console.log("[SKIP] Rest");
             osmd.cursor.next();
             getExpectedNotes();
-        } else if (compareNotes()) {
+        } else if (compareNotesData.result) {
             consecutiveMatches++;
             if (consecutiveMatches >= 3) { // 3 are the expected matches of the audio to the score so it doesnt accidently update ntoe as often
                 console.log("[COMPARE] Match");
+                // console.log("[TESTING], Pears, "+ compareNotesData.dist+", "+ compareNotesData.norm);
                 osmd.cursor.next();
                 getExpectedNotes();
                 consecutiveMatches = 0;
@@ -105,7 +106,7 @@ export async function startAudioProcessing() {
         } else {
             consecutiveMatches = 0;
         }
-
+        
         updateSignalData({ frequency: values.audio.frequency, rms: values.audio.rms, cents: values.audio.cents });
     }
 

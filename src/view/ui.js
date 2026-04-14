@@ -29,10 +29,8 @@ export function initUI() {
                 checkServer.style.color = "white";
             }
         } catch (e) {
-            if (!response.ok) {
-                checkServer.style.backgroundColor = "maroon";
-                checkServer.style.color = "white";
-            }
+            checkServer.style.backgroundColor = "maroon";
+            checkServer.style.color = "white";
         }
     }
 
@@ -51,15 +49,25 @@ export function initUI() {
         osmd.cursor.show();
         getExpectedNotes();
     };
-    document.getElementById("zoomp").onclick = () => adjustZoom("+");
-    document.getElementById("zoomm").onclick = () => adjustZoom("-");
 
     const zoomValue = document.getElementById("zoomValue");
+    // Init update on window
+    zoomValue.textContent = osmd.zoom.toFixed(1);
+    
+    document.getElementById("zoomp").onclick = () => {
+        adjustZoom("+");
+        zoomValue.textContent = osmd.zoom.toFixed(1);
+    };
+
+    document.getElementById("zoomm").onclick = () => {
+        adjustZoom("-");
+        zoomValue.textContent = osmd.zoom.toFixed(1);
+    };
     window.addEventListener("keydown", (e) => {
         if (e.key === "ArrowRight" || e.key === "d") { osmd.cursor.next(); getExpectedNotes(); }
         if (e.key === "ArrowLeft" || e.key === "a") { osmd.cursor.previous(); getExpectedNotes(); }
-        if (e.key === "-") { adjustZoom("-"); zoomValue.textContent = parseFloat(osmd.zoom).toFixed(1); }
-        if (e.key === "=") { adjustZoom("+"); zoomValue.textContent = parseFloat(osmd.zoom).toFixed(1); }
+        if (e.key === "-") { adjustZoom(zoomValue, "-"); }
+        if (e.key === "=") { adjustZoom(zoomValue, "+"); }
 
     });
 

@@ -33,6 +33,7 @@ function euclideanDistance(a, b) {
     return Math.sqrt(sumofSquaredDifference(a, b)); // Euclidean is Sqrt of SSD
 }
 
+
 function manhattanDistance(a, b) {
     let sum = 0;
     for (let i = 0; i < 12; i++) {
@@ -59,7 +60,7 @@ export function chebyshevDistance(a, b) {
  * Need to test:
  * p < 1
 */
-function distMinkowski(a, b, p = 1.5) {
+function minkowskiDistance(a, b, p = 1.5) {
     let sum = 0;
     for (let i = 0; i < 12; i++) {
         sum += Math.pow(Math.abs(a[i] - b[i]), p);
@@ -67,7 +68,8 @@ function distMinkowski(a, b, p = 1.5) {
     return Math.pow(sum, 1 / p);
 }
 
-function distCanberra(a, b) {
+
+function canberraDistance(a, b) {
     let sum = 0;
     for (let i = 0; i < 12; i++) {
         const denom = Math.abs(a[i]) + Math.abs(b[i]);
@@ -120,6 +122,7 @@ export function pearsonDistance(a, b) {
     return 1 - (numerator / denominator);
 }
 
+
 /**
  * Compares the two chroma feature arrays from audio and score via DTW
  * @returns boolean of chroma distance
@@ -139,7 +142,7 @@ export function compareNotes() {
     }
 
     // console.log("[COMPARE] Expected chroma:", expectedChroma);
-    console.log("[COMPARE] Last detected chroma:", detectedChromaHistory[detectedChromaHistory.length - 1]);
+    // console.log("[COMPARE] Last detected chroma:", detectedChromaHistory[detectedChromaHistory.length - 1]);
 
 
     const expectedChromaHistory = detectedChromaHistory.map(() => [...expectedChroma]);
@@ -158,7 +161,7 @@ export function compareNotes() {
     // console.log("[COMPARE] Normalized distance:", normalisation);
 
     // Normalising 
-    return (normalisation) < 0.20;
+    return {result: (normalisation) < 0.20, dist: distance, norm: normalisation};
 }
 
 
