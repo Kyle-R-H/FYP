@@ -99,7 +99,7 @@ export async function startAudioProcessing() {
             if (consecutiveMatches >= 3) { // 3 are the expected matches of the audio to the score so it doesnt accidently update ntoe as often
                 // console.log("[COMPARE] Match");
                 console.log(
-                    `[DTW] method=${compareNotesData.method} | dist=${compareNotesData.dist.toFixed(3)} | norm=${compareNotesData.norm.toFixed(3)} | threshold=${compareNotesData.threshold} | consecutiveMatches=${consecutiveMatches}`
+                    `[DTW] method=${compareNotesData.method} | measure=${osmd.cursor.Iterator.CurrentMeasure.MeasureNumber} | ${compareNotesData.dist.toFixed(3)} , ${compareNotesData.norm.toFixed(3)} | threshold=${compareNotesData.threshold} | consecutiveMatches=${consecutiveMatches}`
                 );
 
                 osmd.cursor.next();
