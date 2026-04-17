@@ -37,19 +37,3 @@ project/
 ├── readme.md
 └── server.js
 ```
-## Changelog
-### Till 06/03/26
-- Score Input for musicxml files and error handling for other files
-- Score control for moving the osmd cursor
-- Audio input using webaudio api with playback
-- Time and frequency domain graphed using html canvas based on tutorials and blogs listed in audio.js
-- Data is displayed based on those graphs
-- Signal Data somewhat displayed, WIP
-- Score display using osmd with zoom functionality and default (error) score
-- Meyda included and logs chroma values, rms, mfcc
-
-### 18/03/26
-- Display Score expected notes from osmd cursor
-
-## 28/03/26
-- Monophonic Pitch Detection
