@@ -26,7 +26,7 @@ export function initUI() {
             console.log("[SERVER] Result: " + response.status);
             console.dir("[SERVER] " + response.text());
             if (response.ok) {
-                checkServer.style.backgroundColor = "green";
+                checkServer.style.backgroundColor = "#2eaf46";
                 checkServer.style.color = "white";
             }
         } catch (e) {
