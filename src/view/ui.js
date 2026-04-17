@@ -111,12 +111,12 @@ function createChromaContainer() {
 }
 
 export function updateSignalData({ frequency, rms, cents }) {
-    const frequencyNoteValue = document.getElementById("freqNoteValue");
+    const detectedNoteValue = document.getElementById("detectedNotes");
     const centsValue = document.getElementById("centsValue");
     const rmsValue = document.getElementById("rmsValue");
 
     // console.log("[DATA] ", frequency);
-    frequencyNoteValue.textContent = freqToNote(frequency) + " - " + frequency.toFixed(1) + "Hz";
+    detectedNoteValue.textContent = freqToNote(frequency) + " - " + frequency.toFixed(1) + "Hz";
     centsValue.textContent = Math.round(cents);
     rmsValue.textContent = rms.toFixed(4);
 }
@@ -133,7 +133,6 @@ export function updateMeydaRMS(meyRMS) {
 export function updateExpectedNotes(noteString) {
     const expectedNotes = document.getElementById("expectedNotes");
     expectedNotes.innerHTML = noteString;
-
 }
 
 export function updateAudioControlButtons(hidden) {
@@ -171,8 +170,8 @@ export function updateChromaColors(values) {
 
     boxes.forEach((box, i) => {
         const value = values[i];
-        // white = 1, green = 0
-        const greenValue = Math.floor(value * 255);
+        // white = 0, green = 1
+        const greenValue = Math.floor((1 - value) * 255);
         box.style.backgroundColor = `rgb(${greenValue}, 255, ${greenValue})`;
     });
 }

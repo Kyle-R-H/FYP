@@ -32,139 +32,115 @@
 <!-- Body -->
 
 <body>
-    <h1 style="margin-block-start: 0; margin-block-end: .5em;">
+    <h1>
         Real-time Interactive Music Score Tracking Using Live Microphone Input
     </h1>
     <details>
         <summary>Information & Domain Graphs</summary>
-        <hr />
+
         <!-- Misc Data Info -->
         <button id="checkServer">Check Server</button>
         <button hidden id="toggleInfo">Toggle Audio Info</button>
-        <div hidden id="info">
-        </div>
-        <hr>
+        <div hidden id="info"></div>
 
         <!-- Domain Graphs: TODO - Update info with more accurate data from worklet -->
         <div class="hListGraph">
             <div class="domainDiv">
                 <h3>Time Domain (Amplitude/Time)</h3>
-                <canvas id="timeDomainGraph" width="250" height="100" style="border: 1px solid #000000;"></canvas>
+                <canvas id="timeDomainGraph" width="250" height="100"></canvas>
             </div>
-            <!-- <div class="graphInfo" id="TDInfo">
-            <h4>Amplitude</h4>
-        </div> -->
 
             <div class="domainDiv">
                 <h3>Frequency Domain (Amplitude/Freq)</h3>
-                <canvas id="frequencyDomainGraph" width="250" height="100" style="border: 1px solid #000000;"></canvas>
+                <canvas id="frequencyDomainGraph" width="250" height="100"></canvas>
             </div>
-            <!-- <div class="graphInfo" id="FDInfo">
-            <h4>Amplitude</h4>
-        </div> -->
+        </div>
+
+        <div class="hList">
+            <h3>DTW Method:</h3>
+            <select id="dtwMethod">
+                <option value="cosine">Cosine</option>
+                <option value="ssd">SSD</option>
+                <option value="euclidean">Euclidean</option>
+                <option value="manhattan">Manhattan</option>
+                <option value="chebyshev">Chebyshev</option>
+                <option value="minkowski">Minkowski</option>
+                <option value="canberra">Canberra</option>
+                <option value="pearson">Pearson</option>
+            </select>
+
+            <h3>Threshold:</h3>
+            <input id="dtwThreshold" type="range" min="0.1" max="0.5" step="0.01" value="0.20">
+            <span id="thresholdValue">0.20</span>
+
+            <div class="hListText">
+                <div>
+                    <p id="pTitle">Cents</p>
+                    <p id="centsValue">-</p>
+                </div>
+                <div>
+                    <p id="pTitle">Monophonic RMS</p>
+                    <p id="rmsValue">-</p>
+                </div>
+                <div>
+                    <p id="pTitle">Polyphonic RMS</p>
+                    <p id="meydaRmsValue">-</p>
+                </div>
+            </div>
         </div>
     </details>
-    <hr />
-    <!-- Chromagrams: Could not get graph working nor the data available -->
-    <!-- <h3>Score Chromagram</h3>
-    <svg id="scoreChromagram"></svg>
-
-    <h3>Audio Chromagram</h3>
-    <svg id="AudioChromagram"></svg>
-    <hr /> -->
-
-    <!-- Signal Data and Audio Chroma Valuew -->
-    <h3 style="margin-block-end: 5px;">Signal Data</h3>
-    <div class="hListText">
-        <div id="chromaContainer">
-        </div>
-    </div>
-    <div class="hListText">
-        <div>
-            <p style="font-weight: bolder;">Cents</p>
-            <p id="centsValue">-</p>
-        </div>
-        <div>
-            <p style="font-weight: bolder;">Monophonic RMS</p>
-            <p id="rmsValue">-</p>
-        </div>
-        <div>
-            <p style="font-weight: bolder;">Polyphonic RMS</p>
-            <p id="meydaRmsValue">-</p>
-        </div>
-    </div>
-
-    <hr />
 
     <!-- Score, Controls and Expected Notes -->
     <div class="hListStick">
-        <div class="hList" style="margin-left: 8px; margin-right: 8px;">
-            <div>
-                <div class="hList">
-                    <h3 style="margin-block-end: 0%;">OpenSheetMusicDisplay Score</h3>
-
-                    <!-- Upload Score -->
-                    <div id="scoreAudioInputs" style="align-content: end;">
-                        <input title="Score Input" id="scoreInput" type="file"
-                            accept=".musicxml, .mxl, .pdf, .png, .jpg, .mid, .midi" />
-                    </div>
-                </div>
-
-                <div class="hList" style="align-items: center; gap: 8px;">
-                    <h3>Zoom:</h3>
-                    <button id="zoomm" type="button">-</button>
-                    <p id="zoomValue"></p>
-                    <button id="zoomp" type="button">+</button>
-
-                    <h3>Cursor:</h3>
-                    <button id="reset">Reset</button>
-                    <button id="prev">Prev</button>
-                    <button id="next">Next</button>
-
-                    <h3>Audio:</h3>
-                    <button id="audioListen" style="background-color: maroon; color: white;" hidden>Listen</button>
-                    <button id="audioStart">Start</button>
-                    <button id="audioStop" hidden>Stop</button>
-                </div>
+        <div class="notes" >
+            <h3>Expected Notes</h3>
+            <div id="expectedNotes">
+                <p>-</p>
             </div>
-            <div>
+        </div>
+        
+        <div class="hListText">
+            <div id="chromaContainer"></div>
+        </div>
 
-                <h3 style="margin-block-end: .5em;">Expected Notes</h3>
-                <div id="expectedNotes" style="margin-bottom: .5em;">
-                    <p>-</p>
-                </div>
-
-            </div>
-            <div>
-                <h3 style="margin-block-end: .5em;">Detected Notes</h3>
-                <div id="freqNoteValue" style="margin-bottom: .5em;">
-                    <p>-</p>
-                </div>
-            </div>
-            <div class="hList" style="align-items: center; gap: 8px;">
-                <h3>DTW Method:</h3>
-                <select id="dtwMethod">
-                    <option value="ssd">SSD</option>
-                    <option value="euclidean">Euclidean</option>
-                    <option value="manhattan">Manhattan</option>
-                    <option value="chebyshev">Chebyshev</option>
-                    <option value="minkowski">Minkowski</option>
-                    <option value="canberra">Canberra</option>
-                    <option value="cosine">Cosine</option>
-                    <option value="pearson">Pearson</option>
-                </select>
-
-                <h3>Threshold:</h3>
-                <input id="dtwThreshold" type="range" min="0.1" max="0.5" step="0.01" value="0.20">
-                <span id="thresholdValue">0.20</span>
+        <div class="notes">
+            <h3>Detected Notes</h3>
+            <div id="detectedNotes">
+                <p>-</p>
             </div>
         </div>
     </div>
 
-    <!-- Double div to remove overhang on the right side of the screen -->
     <div id="OSMDContainer">
         <div id="OSMD"></div>
     </div>
 </body>
+
+<footer>
+
+    <div class="hList">
+        <h3>Zoom:</h3>
+        <button id="zoomm" type="button" style="font-weight: bolder;">-</button>
+        <p id="zoomValue"></p>
+        <button id="zoomp" type="button" style="font-weight: bolder;">+</button>
+
+        <h3>Cursor:</h3>
+        <button id="prev" style="font-weight: bolder;"><</button>
+        <button id="reset">Reset</button>
+        <button id="next" style="font-weight: bolder;">></button>
+
+        <h3>Audio:</h3>
+        <button id="audioListen" hidden>Listen</button>
+        <button id="audioStart" class="primary">Start</button>
+        <button id="audioStop" hidden>Stop</button>
+
+        <h3>Score:</h3>
+        <div id="scoreAudioInputs">
+            <input title="Score Input" id="scoreInput" type="file"
+                accept=".musicxml, .mxl, .pdf, .png, .jpg, .mid, .midi" />
+        </div>
+    </div>
+
+</footer>
 
 </html>

@@ -11,7 +11,7 @@ export const values = {
         chroma: new Array(12).fill(0),
     },
     dtw: {
-        method: "ssd",
-        threshold: 0.20
+        method: "cosine",
+        threshold: 0.22
     }
 }

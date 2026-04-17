@@ -123,6 +123,7 @@ export function pearsonDistance(a, b) {
 }
 
 function getDistanceMethod(name) {
+    // console.log("[COMPARE] Distance Formula: ", name);
     switch (name) {
         case "ssd": return sumofSquaredDifference;
         case "euclidean": return euclideanDistance;
@@ -157,13 +158,12 @@ export function compareNotes() {
     // console.log("[COMPARE] Expected chroma:", expectedChroma);
     // console.log("[COMPARE] Last detected chroma:", detectedChromaHistory[detectedChromaHistory.length - 1]);
 
-
     const expectedChromaHistory = detectedChromaHistory.map(() => [...expectedChroma]);
-    let method = getDistanceMethod(values.dtw.method);
+    let dtwMethod = getDistanceMethod(values.dtw.method);
     const dtw = new DynamicTimeWarping(
         detectedChromaHistory,      // 12 chroma values
         expectedChromaHistory,      // 12 chroma values
-        method                      // Method of comparing chroma vectors
+        dtwMethod                      // Method of comparing chroma vectors
     );
 
     // "the distance of the dynamic time warping as float"
