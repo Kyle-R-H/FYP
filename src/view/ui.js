@@ -2,7 +2,10 @@
 import { adjustZoom, getExpectedNotes, osmd } from "/controller/score/osmdController.js";
 import { noteNames, freqToNote } from "/controller/helpers.js";
 import { toggleAudioListen, startAudioProcessing, stopAudioProcessing } from "/controller/audio/audioController.js";
+import { values } from "../model/values.js";
 
+const checkServer = document.getElementById("checkServer");
+const toggleInfo = document.getElementById("toggleInfo")
 const audioListen = document.getElementById("audioListen");
 const audioStart = document.getElementById("audioStart");
 const audioStop = document.getElementById("audioStop");
@@ -12,15 +15,27 @@ let audioChromaDisplayed = false;  // Only load the audio chroma boxes once
 export function initUI() {
     createChromaContainer();
 
-    // Chromagram
-    const audioChromagram = document.getElementById("audioChromagram");
-    const scoreChromagram = document.getElementById("scoreChromagram");
+    // // Chromagram
+    // const audioChromagram = document.getElementById("audioChromagram");
+    // const scoreChromagram = document.getElementById("scoreChromagram");
 
-    document.getElementById("checkServer").onclick = async () => {
-        const response = await fetch("http://localhost:5000/test", { method: "POST" });
-        console.log("[SERVER] Result: " + response.status);
-        console.dir("[SERVER] " + response.text());
+    checkServer.onclick = async () => {
+        try {
+
+            const response = await fetch("http://localhost:5000/test", { method: "POST" });
+            console.log("[SERVER] Result: " + response.status);
+            console.dir("[SERVER] " + response.text());
+            if (response.ok) {
+                checkServer.style.backgroundColor = "#2eaf46";
+                checkServer.style.color = "white";
+            }
+        } catch (e) {
+            checkServer.style.backgroundColor = "maroon";
+            checkServer.style.color = "white";
+        }
     }
+
+    toggleInfo.onclick = () => updateInfoVisibility(document.getElementById("info"));
 
     document.getElementById("next").onclick = () => {
         osmd.cursor.next();
@@ -35,15 +50,25 @@ export function initUI() {
         osmd.cursor.show();
         getExpectedNotes();
     };
-    document.getElementById("zoomp").onclick = () => adjustZoom("+");
-    document.getElementById("zoomm").onclick = () => adjustZoom("-");
 
     const zoomValue = document.getElementById("zoomValue");
+    // Init update on window
+    zoomValue.textContent = osmd.zoom.toFixed(1);
+
+    document.getElementById("zoomp").onclick = () => {
+        adjustZoom("+");
+        zoomValue.textContent = osmd.zoom.toFixed(1);
+    };
+
+    document.getElementById("zoomm").onclick = () => {
+        adjustZoom("-");
+        zoomValue.textContent = osmd.zoom.toFixed(1);
+    };
     window.addEventListener("keydown", (e) => {
         if (e.key === "ArrowRight" || e.key === "d") { osmd.cursor.next(); getExpectedNotes(); }
         if (e.key === "ArrowLeft" || e.key === "a") { osmd.cursor.previous(); getExpectedNotes(); }
-        if (e.key === "-") { adjustZoom("-"); zoomValue.textContent = parseFloat(osmd.zoom).toFixed(1); }
-        if (e.key === "=") { adjustZoom("+"); zoomValue.textContent = parseFloat(osmd.zoom).toFixed(1); }
+        if (e.key === "-") { adjustZoom(zoomValue, "-"); }
+        if (e.key === "=") { adjustZoom(zoomValue, "+"); }
 
     });
 
@@ -51,6 +76,23 @@ export function initUI() {
     audioListen.onclick = () => toggleAudioListen(audioListen);
     audioStart.onclick = startAudioProcessing;
     audioStop.onclick = stopAudioProcessing;
+
+    const methodSelect = document.getElementById("dtwMethod");
+    const thresholdSlider = document.getElementById("dtwThreshold");
+    const thresholdValue = document.getElementById("thresholdValue");
+
+    // Method change
+    methodSelect.onchange = () => {
+        values.dtw.method = methodSelect.value;
+        console.log("[DTW] Method:", values.dtw.method);
+    };
+
+    // Threshold change
+    thresholdSlider.oninput = () => {
+        const val = parseFloat(thresholdSlider.value);
+        values.dtw.threshold = val;
+        thresholdValue.textContent = val.toFixed(2);
+    };
 }
 
 
@@ -69,14 +111,12 @@ function createChromaContainer() {
 }
 
 export function updateSignalData({ frequency, rms, cents }) {
-    const fundamentalFrequencyValue = document.getElementById("fundaFreqValue");
-    const frequencyNoteValue = document.getElementById("freqNoteValue");
+    const detectedNoteValue = document.getElementById("detectedNotes");
     const centsValue = document.getElementById("centsValue");
     const rmsValue = document.getElementById("rmsValue");
 
     // console.log("[DATA] ", frequency);
-    fundamentalFrequencyValue.textContent = frequency.toFixed(1);
-    frequencyNoteValue.textContent = freqToNote(frequency);
+    detectedNoteValue.textContent = freqToNote(frequency) + " - " + frequency.toFixed(1) + "Hz";
     centsValue.textContent = Math.round(cents);
     rmsValue.textContent = rms.toFixed(4);
 }
@@ -93,19 +133,26 @@ export function updateMeydaRMS(meyRMS) {
 export function updateExpectedNotes(noteString) {
     const expectedNotes = document.getElementById("expectedNotes");
     expectedNotes.innerHTML = noteString;
-
 }
 
 export function updateAudioControlButtons(hidden) {
     if (hidden) {
-        audioStop.hidden = false;
         audioStart.hidden = true;
+        toggleInfo.hidden = false;
+        audioStop.hidden = false;
         audioListen.hidden = false;
     } else {
-        audioStop.hidden = true;
         audioStart.hidden = false;
+        toggleInfo.hidden = true;
+        audioStop.hidden = true;
         audioListen.hidden = true;
     }
+}
+
+export function updateInfoVisibility(info) {
+    if (info.hidden) {
+        info.hidden = false;
+    } else { info.hidden = true; }
 }
 
 /**
@@ -123,8 +170,8 @@ export function updateChromaColors(values) {
 
     boxes.forEach((box, i) => {
         const value = values[i];
-        // white = 1, green = 0
-        const greenValue = Math.floor(value * 255);
+        // white = 0, green = 1
+        const greenValue = Math.floor((1 - value) * 255);
         box.style.backgroundColor = `rgb(${greenValue}, 255, ${greenValue})`;
     });
 }

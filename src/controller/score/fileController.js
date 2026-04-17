@@ -1,12 +1,12 @@
 import { updateExpectedNotes } from "/view/ui.js";
 import { getExtension } from "../helpers.js";
-import { osmd, osmdRender } from "./osmdController.js";
+import { osmd, osmdRender, fileConversion } from "./osmdController.js";
 
 export async function loadDefaultScore() {
     // Default Score to be Displayed
     try {
-        // await osmd.load("/input/MusicXML/La_Campanella_-_Grandes_Etudes_de_Paganini_No._3_-_Franz_Liszt.mxl");
-        await osmd.load("/input/MusicXML/error.musicxml");
+        // await osmd.load("/input/MusicXML/Fur_Elise.mxl");
+        await osmd.load("/input/Error.musicxml");
         updateExpectedNotes("<p>-</p>");
         osmdRender();
 
@@ -37,6 +37,9 @@ export async function inputFileController(event) {
 
         if (musicxmlArrayBuffer) {
             const musicxmlText = new TextDecoder().decode(musicxmlArrayBuffer);
+            if (osmd && osmd.Sheet) {
+                osmd.clear();
+            }
             await osmd.load(musicxmlText);
             osmdRender();
         }
@@ -63,16 +66,21 @@ export async function inputFileController(event) {
         const musicxmlArrayBuffer = await fileConversion(file, "score");
         if (musicxmlArrayBuffer) {
             const musicxmlText = new TextDecoder().decode(musicxmlArrayBuffer);
+            if (osmd && osmd.Sheet) {
+                osmd.clear();
+            }
             await osmd.load(musicxmlText);
             osmdRender();
         }
 
     } else if (fileExtension == "musicxml" || fileExtension == "mxl") {
         try {
+            if (osmd && osmd.Sheet) {
+                osmd.clear();
+            }
             await osmd.load(file);
-            expectedNotes.textContent = "";
+            expectedNotes.textContent = "-";
             osmdRender();
-
             console.log("[LOG] MusicXML Load Successful");
         } catch (err) {
             console.error("[ERROR] Failed to load score | ./osmd.js:", err);

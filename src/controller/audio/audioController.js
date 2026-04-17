@@ -1,27 +1,14 @@
 /**
  * This file focuses on the audio processing
  * It enables the control of the audio accessed by the browser and contains
- * the processing of the input signal into the various graphs
- * 
- * The Time Domain
- * Amplitude / Time where the window is displayed in the info id div
- * This is displayed to show the signal that is being picked up over time
- * 
- * The Frequency Domain 
- * Amplitude / Frequency which contains bars of frequency bins where the 
- * width is calculated as 
- * sample rate / fft size -> 44100 / 4096 as example
- * to get the frequency at each bin, you have to find the width of the fisrt bin
- * and multiply it by the specified bin
- * so if the bin width = 10.77, the freq at bin 20 is 20 * 10.77 = 215.4 which 
- * roughly equates to a frequency bewteen a G#3(207.652) and A3(220)
+ * the processing of the input signal into the domain graphs
  */
 
 import { compareNotes } from "/controller/compare.js";
 import { calulateCents, fastMaxMin } from "/controller/helpers.js"
 import { values } from "/model/values.js";
 import { getExpectedNotes, osmd } from "/controller/score/osmdController.js";
-import { updateChromaColors, updateMeydaRMS, updateAudioControlButtons, updateSignalData } from "/view/ui.js";
+import { updateChromaColors, updateMeydaRMS, updateAudioControlButtons, updateSignalData, updateInfoVisibility } from "/view/ui.js";
 
 // let openSheetMusicDisplayInstance = null; // OSMD instance
 let audioContext = null;                  // WebAudio AudioContext
@@ -33,6 +20,7 @@ let monitorGainNode = null;               // Gain for live audio playback
 let monitoringEnabled = false;            // Toggle for audio playback
 
 let freqBinValue = 0;   // Hz value per freq bin 
+let consecutiveMatches = 0;
 
 export function toggleAudioListen(audioListen) {
     if (!monitorGainNode) return;
@@ -99,20 +87,27 @@ export async function startAudioProcessing() {
                 values.audio.rms = rms;
                 values.audio.cents = calulateCents(frequency).cents;
             }
-
         }
 
-
+        let compareNotesData = compareNotes();
         if (values.score.expectedFreqs.length === 0) {
             console.log("[SKIP] Rest");
             osmd.cursor.next();
             getExpectedNotes();
-        } else if (compareNotes()) {
-            console.log("[COMPARE] Match");
-            osmd.cursor.next();
-            getExpectedNotes();
+        } else if (compareNotesData.result) {
+            consecutiveMatches++;
+            if (consecutiveMatches >= 3) { // 3 are the expected matches of the audio to the score so it doesnt accidently update ntoe as often
+                // console.log("[COMPARE] Match");
+                console.log(
+                    `[DTW] method=${compareNotesData.method} | measure=${osmd.cursor.Iterator.CurrentMeasure.MeasureNumber} | ${compareNotesData.dist.toFixed(3)} , ${compareNotesData.norm.toFixed(3)} | threshold=${compareNotesData.threshold} | consecutiveMatches=${consecutiveMatches}`
+                );
+
+                osmd.cursor.next();
+                getExpectedNotes();
+                consecutiveMatches = 0;
+            }
         } else {
-            // console.log("[COMPARE] False");
+            consecutiveMatches = 0;
         }
 
         updateSignalData({ frequency: values.audio.frequency, rms: values.audio.rms, cents: values.audio.cents });
@@ -128,7 +123,6 @@ export async function startAudioProcessing() {
         "<p>FFT Size =" + analyserNode.fftSize + "</p>" +
         "<p>Time Domain Window = " + (analyserNode.fftSize / audioContext.sampleRate).toFixed(4) + " secs</p>" + // fftsize/samplerate = time
         "<p>Freq Bin Value = " + (freqBinValue).toFixed(4) + "Hz per bin</p>"; // samplerate/fftsize = freqBinCount
-
 
 
     // Meyda analyzer for chroma + RMS
@@ -208,10 +202,18 @@ function onMeydaFeaturesCallback(features) {
     // Chroma values represent the strength of the values per note 
     // in an array of 12 note western scale
     const chromaValues = features.chroma;
+
+    values.audio.chroma = chromaValues;
+    values.audio.chromaValues.push(chromaValues);
+
+    // keep a short rolling window
+    if (values.audio.chromaValues.length > 16) { // 16 is a random estimated number 
+        values.audio.chromaValues.shift(); // Remove oldest chroma history
+    }
     updateChromaColors(chromaValues);
 
     let rms = features.rms
-    if (rms < 0.01) {
+    if (rms <= 0.01) {
         return -1;
     }
     updateMeydaRMS(rms);
@@ -256,8 +258,8 @@ function drawTimeDoaminGraph() {
     }
     timeDomainContext.stroke();
 
-    const TDInfo = document.getElementById("TDInfo");
-    TDInfo.innerHTML = "<h4>Amplitude</h4><p>Max Amp = " + maxMinWIndex.max.toFixed(4) + "</p>" + "<p>Min Amp = " + maxMinWIndex.min.toFixed(4) + "</p>";
+    // const TDInfo = document.getElementById("TDInfo");
+    // TDInfo.innerHTML = "<h4>Amplitude</h4><p>Max Amp = " + maxMinWIndex.max.toFixed(4) + "</p>" + "<p>Min Amp = " + maxMinWIndex.min.toFixed(4) + "</p>";
 }
 
 /**
@@ -302,9 +304,9 @@ function drawFrequencyDomainGraph() {
         frequency += barWidth + 1;
     }
 
-    const FDInfo = document.getElementById("FDInfo");
-    FDInfo.innerHTML = "<h4>Amplitude</h4><p>Max Amp = " + maxMinWIndex.max + "</p>" +
-        "<p>Peak Frequency = " + maxMinWIndex.maxIndex * freqBinValue + "Hz</p>";
+    // const FDInfo = document.getElementById("FDInfo");
+    // FDInfo.innerHTML = "<h4>Amplitude</h4><p>Max Amp = " + maxMinWIndex.max + "</p>" +
+    //     "<p>Peak Frequency = " + maxMinWIndex.maxIndex * freqBinValue + "Hz</p>";
 
 }
 

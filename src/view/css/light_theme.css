@@ -1,63 +1,147 @@
+/** -- Body -- **/
+body {
+    font-family: "Times New Roman", serif;
+    padding-bottom: 60px;
+}
+
+body h1 {
+    margin-block-start: 0;
+    margin-block-end: .5em;
+    text-align: center;
+}
+
+/** Buttons */
+button {
+    border: 1px solid #d1d7e4;
+    background: rgb(241, 241, 241);
+    color: black;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.15s ease;
+}
+
+button:hover {
+    border-color: #2eaf46;
+    color: #3b9c1d;
+}
+
+button.primary {
+    background: #2eaf46;
+    border-color: #2eaf46;
+    color: white;
+}
+
+button.primary:hover {
+    background: #3b9c1d;
+    color: white;
+}
+
+/** Check Server */
+#checkServer {
+    margin-top: 15px;
+    margin-bottom: 10px;
+}
+
+/** Signal Info */
 #info p {
     margin-block-start: 2px;
     margin-block-end: 2px;
 }
 
+/** Info & Graphs Dropdown */
+details {
+    border: 1px solid #e2ebff;
+    padding: 8px 12px;
+    background: #fafafa;
+}
+
+summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: #444953;
+}
+
+details[open] {
+    background: #fdfeff;
+}
+
+details .hList {
+    align-items: center;
+    gap: 8px;
+}
+
+details .hList .hListText #pTitle {
+    font-weight: bolder;
+}
+
+/** Horizonal Lists */
 .hList {
     display: flex;
     gap: 16px;
-    /* align-items: flex-start; */
 }
 
 .hListText {
     display: flex;
     gap: 20px;
-    align-items: flex-start;
+    align-items: center;
+    padding-left: 15px;
+    align-self: center;
 }
 
+.hListText p {
+    margin-block-start: 6px;
+    margin-block-end: 6px;
+}
+
+/* Domain Graphs */
 .hListGraph {
     display: flex;
     gap: 16px;
     width: 100%;
 }
 
-.hListStick {
-    position: sticky;
-    top: 0;
-    background: white;
-    z-index: 1000;
-    margin-left: -8px;
-    margin-right: -8px;
-    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.05);
-}
-
 .domainDiv {
     flex: 3;
 }
 
-.graphInfo {
-    flex: 2;
+.domainDiv canvas {
+    border: 1px solid #0000005d;
 }
 
-.hListText p {
-    margin-block-start: 6px;
-    margin-block-end: 6px;
-    /* display: inline-block; */
+/* Sticky Header List */
+.hListStick {
+    position: sticky;
+    gap: 32px;
+    top: 0;
+    background: white;
+    z-index: 1000;
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-left: 10px;
+    padding-right: 10px;
 }
 
-
-#audioButtons button {
-    margin-bottom: 6px;
+.hListStick .notes {
+    margin-bottom: 10px;
 }
 
-#OSMDContainer {
-    margin-right: 16px;
+.hListStick .notes h3 {
+    margin-block-end: .5em;
+    margin-block-start: .5em
 }
 
+.hListStick .notes div {
+    margin-bottom: .5em;
+}
+
+/** Chroma Values */
 #chromaContainer {
     display: flex;
     gap: 2px;
-    margin: 1px;
 }
 
 .chromaBox {
@@ -68,11 +152,83 @@
     text-align: center;
     align-content: center;
     font-weight: bolder;
-
 }
 
+/** Expected & Detected Notes */
+/* Expected */
 #expectedNotes p {
     margin-block-end: 0em;
     margin-block-start: 0em;
     font-size: 15px;
 }
+
+/* Detected */
+#detectedNotes p {
+    margin-block-end: 0em;
+    margin-block-start: 0em;
+    font-size: 15px;
+}
+
+
+/** -- OSMD -- **/
+#OSMDContainer {
+    margin-right: 16px;
+    /* Removes horizonal scrolling*/
+}
+
+
+/** -- Footer -- **/
+footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 50px;
+    padding-right: 15px;
+    padding-bottom: 10px;
+    background: white;
+    border-top: 1px solid #d1d7e4;
+    z-index: 1000;
+}
+
+footer .hList {
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+}
+
+footer .hList h3 {
+    padding-left: 15px;
+}
+
+#audioListen {
+    background-color: maroon;
+    color: white;
+}
+
+/** Score Input */
+#scoreAudioInputs {
+    align-self: center;
+}
+
+#scoreInput::file-selector-button {
+    border: 1px solid #d1d7e4;
+    background: rgb(241, 241, 241);
+    color: black;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.15s ease;
+}
+
+#scoreInput::file-selector-button:hover {
+    border-color: #2eaf46;
+    color: #3b9c1d;
+}
+
+
+/* References:
+ *- https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/::file-selector-button
+ *- 
+*/

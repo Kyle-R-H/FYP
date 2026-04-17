@@ -1,4 +1,4 @@
-import { freqToNote } from '/controller/helpers.js';
+import { freqToNote, freqsToChroma } from '/controller/helpers.js';
 import { values } from "/model/values.js";
 import { updateExpectedNotes } from '/view/ui.js';
 import { loadDefaultScore } from "/controller/score/fileController.js";
@@ -24,8 +24,7 @@ export function adjustZoom(zoomChar) {
     if (zoomChar === "+") {
         osmd.zoom += 0.1;
         osmd.render();
-        zoomValue.textContent = parseFloat(osmd.zoom).toFixed(1);
-        console.log("[LOG] Zoom " + zoomChar + " Successfiul");
+        console.log("[LOG] Zoom " + zoomChar + " Successful");
         window.scrollTo(0, scrollY);
 
     } else if (zoomChar === "-") {
@@ -35,7 +34,6 @@ export function adjustZoom(zoomChar) {
         } else {
             osmd.zoom -= 0.1;
             osmd.render();
-            zoomValue.textContent = parseFloat(osmd.zoom).toFixed(1);
             console.log("[LOG] Zoom " + zoomChar + " Successful");
             window.scrollTo(0, scrollY);
         }
@@ -117,6 +115,7 @@ export function getExpectedNotes() {
 
     updateExpectedNotes([...new Set(notes)].map(notes => `<p>${notes}</p>`).join(""));
     values.score.expectedFreqs = freqs;
+    values.score.chroma = freqsToChroma(freqs);
 }
 
 /**
