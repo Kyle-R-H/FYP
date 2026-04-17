@@ -3,6 +3,7 @@ import { adjustZoom, getExpectedNotes, osmd } from "/controller/score/osmdContro
 import { noteNames, freqToNote } from "/controller/helpers.js";
 import { toggleAudioListen, startAudioProcessing, stopAudioProcessing } from "/controller/audio/audioController.js";
 
+const toggleInfo = document.getElementById("toggleInfo");
 const audioListen = document.getElementById("audioListen");
 const audioStart = document.getElementById("audioStart");
 const audioStop = document.getElementById("audioStop");
@@ -31,6 +32,7 @@ export function initUI() {
             checkServer.style.color = "white";
         }
     }
+    toggleInfo.onclick = () => updateInfoVisibility(document.getElementById("info"));
 
     document.getElementById("next").onclick = () => {
         osmd.cursor.next();
@@ -106,14 +108,22 @@ export function updateExpectedNotes(noteString) {
 
 export function updateAudioControlButtons(hidden) {
     if (hidden) {
-        audioStop.hidden = false;
         audioStart.hidden = true;
+        toggleInfo.hidden = false;
+        audioStop.hidden = false;
         audioListen.hidden = false;
     } else {
-        audioStop.hidden = true;
         audioStart.hidden = false;
+        toggleInfo.hidden = true;
+        audioStop.hidden = true;
         audioListen.hidden = true;
     }
+}
+
+export function updateInfoVisibility(info) {
+    if (info.hidden) {
+        info.hidden = false;
+    } else { info.hidden = true; }
 }
 
 /**
