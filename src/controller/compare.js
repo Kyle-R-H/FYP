@@ -8,7 +8,6 @@ export function compareNotes() {
     // console.log("[LOG] Expected", expected);
     if (!detected || expected.length === 0) return false;
 
-    // TODO: This waits for 1 out of x notes to appear (monophonic), needs to get polyphonics
     return expected.some(freq => {
         const cents = 1200 * Math.log2(detected / freq);
         return Math.abs(cents) < 50;

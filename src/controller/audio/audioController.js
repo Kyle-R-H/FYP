@@ -256,8 +256,8 @@ function drawTimeDoaminGraph() {
     }
     timeDomainContext.stroke();
 
-    const TDInfo = document.getElementById("TDInfo");
-    TDInfo.innerHTML = "<h4>Amplitude</h4><p>Max Amp = " + maxMinWIndex.max.toFixed(4) + "</p>" + "<p>Min Amp = " + maxMinWIndex.min.toFixed(4) + "</p>";
+    // const TDInfo = document.getElementById("TDInfo");
+    // TDInfo.innerHTML = "<h4>Amplitude</h4><p>Max Amp = " + maxMinWIndex.max.toFixed(4) + "</p>" + "<p>Min Amp = " + maxMinWIndex.min.toFixed(4) + "</p>";
 }
 
 /**
@@ -302,9 +302,9 @@ function drawFrequencyDomainGraph() {
         frequency += barWidth + 1;
     }
 
-    const FDInfo = document.getElementById("FDInfo");
-    FDInfo.innerHTML = "<h4>Amplitude</h4><p>Max Amp = " + maxMinWIndex.max + "</p>" +
-        "<p>Peak Frequency = " + maxMinWIndex.maxIndex * freqBinValue + "Hz</p>";
+    // const FDInfo = document.getElementById("FDInfo");
+    // FDInfo.innerHTML = "<h4>Amplitude</h4><p>Max Amp = " + maxMinWIndex.max + "</p>" +
+    //     "<p>Peak Frequency = " + maxMinWIndex.maxIndex * freqBinValue + "Hz</p>";
 
 }
 

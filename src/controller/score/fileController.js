@@ -6,7 +6,7 @@ export async function loadDefaultScore() {
     // Default Score to be Displayed
     try {
         // await osmd.load("/input/MusicXML/La_Campanella_-_Grandes_Etudes_de_Paganini_No._3_-_Franz_Liszt.mxl");
-        await osmd.load("/input/MusicXML/error.musicxml");
+        await osmd.load("/input/error.musicxml");
         updateExpectedNotes("<p>-</p>");
         osmdRender();
 
