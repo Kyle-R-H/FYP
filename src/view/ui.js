@@ -5,10 +5,13 @@ import { toggleAudioListen, startAudioProcessing, stopAudioProcessing } from "/c
 import { values } from "../model/values.js";
 
 const checkServer = document.getElementById("checkServer");
-const toggleInfo = document.getElementById("toggleInfo")
+const toggleInfo = document.getElementById("toggleInfo");
+const detectionMethod = document.getElementById("detectionMethod");
+
 const audioListen = document.getElementById("audioListen");
 const audioStart = document.getElementById("audioStart");
 const audioStop = document.getElementById("audioStop");
+
 
 let audioChromaDisplayed = false;  // Only load the audio chroma boxes once 
 let scoreChromaDisplayed = false;  // Only load the audio chroma boxes once 
@@ -37,6 +40,8 @@ export function initUI() {
     }
 
     toggleInfo.onclick = () => updateInfoVisibility(document.getElementById("info"));
+
+    detectionMethod.onclick = () => updateDetectionMethod(detectionMethod);
 
     document.getElementById("next").onclick = () => {
         osmd.cursor.next();
@@ -167,6 +172,20 @@ export function updateInfoVisibility(info) {
     if (info.hidden) {
         info.hidden = false;
     } else { info.hidden = true; }
+}
+
+export function updateDetectionMethod(detectionMethod){
+    if (detectionMethod.textContent == "Polyphony"){
+        
+        detectionMethod.textContent = "Monophony";
+    } else {
+
+        detectionMethod.textContent = "Polyphony";
+    }
+}
+
+export function getDetectionMethod(){
+    return detectionMethod.textContent;
 }
 
 /**
