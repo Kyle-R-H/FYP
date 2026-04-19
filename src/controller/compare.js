@@ -1,18 +1,16 @@
 import { values } from "../model/values.js";
 
-// export function monophonicCompareNotes() {
-//     const detected = values.audio.frequency;
-//     const expected = values.score.expectedFreqs;
+export function monophonicCompareNotes() {
+    const detected = values.audio.frequency;
+    const expected = values.score.expectedFreqs;
 
-//     // console.log("[LOG] Detected", detected);
-//     // console.log("[LOG] Expected", expected);
-//     if (!detected || expected.length === 0) return false;
+    if (!detected || expected.length === 0) return false;
 
-//     return expected.some(freq => {
-//         const cents = 1200 * Math.log2(detected / freq);
-//         return Math.abs(cents) < 50;
-//     });
-// }
+    return expected.some(freq => {
+        const cents = 1200 * Math.log2(detected / freq);
+        return Math.abs(cents) < 50;
+    });
+}
 
 /*
  * Testing different distance formualas for the DTW function
@@ -155,7 +153,7 @@ export function compareNotes() {
         return false;
     }
 
-    // console.log("[COMPARE] Expected chroma:", expectedChroma);
+    console.log("[COMPARE] Expected chroma:", expectedChroma);
     // console.log("[COMPARE] Last detected chroma:", detectedChromaHistory[detectedChromaHistory.length - 1]);
 
     const expectedChromaHistory = detectedChromaHistory.map(() => [...expectedChroma]);

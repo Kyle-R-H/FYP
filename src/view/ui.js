@@ -5,12 +5,16 @@ import { toggleAudioListen, startAudioProcessing, stopAudioProcessing } from "/c
 import { values } from "../model/values.js";
 
 const checkServer = document.getElementById("checkServer");
-const toggleInfo = document.getElementById("toggleInfo")
+const toggleInfo = document.getElementById("toggleInfo");
+const detectionMethod = document.getElementById("detectionMethod");
+
 const audioListen = document.getElementById("audioListen");
 const audioStart = document.getElementById("audioStart");
 const audioStop = document.getElementById("audioStop");
 
+
 let audioChromaDisplayed = false;  // Only load the audio chroma boxes once 
+let scoreChromaDisplayed = false;  // Only load the audio chroma boxes once 
 
 export function initUI() {
     createChromaContainer();
@@ -36,6 +40,8 @@ export function initUI() {
     }
 
     toggleInfo.onclick = () => updateInfoVisibility(document.getElementById("info"));
+
+    detectionMethod.onclick = () => updateDetectionMethod(detectionMethod);
 
     document.getElementById("next").onclick = () => {
         osmd.cursor.next();
@@ -108,6 +114,19 @@ function createChromaContainer() {
         }
         audioChromaDisplayed = true;
     }
+
+    // Score chroma container
+    const scoreChromaContainer = document.getElementById("scoreChromaContainer");
+    if (!scoreChromaDisplayed) {
+        // Create 12 boxes for each chroma note
+        for (let i = 0; i < 12; i++) {
+            const chromaBox = document.createElement('div');
+            chromaBox.classList.add('scoreChromaBox');
+            scoreChromaContainer.appendChild(chromaBox);
+        }
+        scoreChromaDisplayed = true;
+    }
+
 }
 
 export function updateSignalData({ frequency, rms, cents }) {
@@ -155,13 +174,47 @@ export function updateInfoVisibility(info) {
     } else { info.hidden = true; }
 }
 
+export function updateDetectionMethod(detectionMethod){
+    if (detectionMethod.textContent == "Polyphony"){
+        
+        detectionMethod.textContent = "Monophony";
+    } else {
+
+        detectionMethod.textContent = "Polyphony";
+    }
+}
+
+export function getDetectionMethod(){
+    return detectionMethod.textContent;
+}
+
 /**
- * calulate background colour for chroma values
+ * calulate background colour for audio chroma values
  * @param {array} values 
  * @return background colour for audio chroma values
  */
 export function updateChromaColors(values) {
     const boxes = document.querySelectorAll('.chromaBox');
+
+    if (!boxes.length) {
+        console.warn("[WARN] No chroma boxes found");
+        return;
+    }
+
+    boxes.forEach((box, i) => {
+        const value = values[i];
+        // white = 0, green = 1
+        const greenValue = Math.floor((1 - value) * 255);
+        box.style.backgroundColor = `rgb(${greenValue}, 255, ${greenValue})`;
+    });
+}
+/**
+ * calulate background colour for score chroma values
+ * @param {array} values 
+ * @return background colour for score chroma values
+ */
+export function updateScoreChromaColors(values) {
+    const boxes = document.querySelectorAll('.scoreChromaBox');
 
     if (!boxes.length) {
         console.warn("[WARN] No chroma boxes found");
