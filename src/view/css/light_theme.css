@@ -72,7 +72,7 @@ details .hList {
     gap: 8px;
 }
 
-details .hList .hListText #pTitle {
+details .hList .hListText .pTitle {
     font-weight: bolder;
 }
 
