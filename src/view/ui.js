@@ -73,8 +73,8 @@ export function initUI() {
     window.addEventListener("keydown", (e) => {
         if (e.key === "ArrowRight" || e.key === "d") { osmd.cursor.next(); getExpectedNotes(); }
         if (e.key === "ArrowLeft" || e.key === "a") { osmd.cursor.previous(); getExpectedNotes(); }
-        if (e.key === "-") { adjustZoom(zoomValue, "-"); }
-        if (e.key === "=") { adjustZoom(zoomValue, "+"); }
+        if (e.key === "-") { adjustZoom("-"); zoomValue.textContent = osmd.zoom.toFixed(1); }
+        if (e.key === "=") { adjustZoom("+"); zoomValue.textContent = osmd.zoom.toFixed(1); }
 
     });
 
