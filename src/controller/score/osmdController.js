@@ -1,6 +1,6 @@
 import { freqToNote, freqsToChroma } from '/controller/helpers.js';
 import { values } from "/model/values.js";
-import { updateExpectedNotes } from '/view/ui.js';
+import { updateExpectedNotes, updateScoreChromaColors } from '/view/ui.js';
 import { loadDefaultScore } from "/controller/score/fileController.js";
 
 export let osmd = null;
@@ -116,6 +116,7 @@ export function getExpectedNotes() {
     updateExpectedNotes([...new Set(notes)].map(notes => `<p>${notes}</p>`).join(""));
     values.score.expectedFreqs = freqs;
     values.score.chroma = freqsToChroma(freqs);
+    updateScoreChromaColors(values.score.chroma);
 }
 
 /**

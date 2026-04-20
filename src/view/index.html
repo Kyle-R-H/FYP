@@ -57,22 +57,6 @@
         </div>
 
         <div class="hList">
-            <h3>DTW Method:</h3>
-            <select id="dtwMethod">
-                <option value="cosine">Cosine</option>
-                <option value="ssd">SSD</option>
-                <option value="euclidean">Euclidean</option>
-                <option value="manhattan">Manhattan</option>
-                <option value="chebyshev">Chebyshev</option>
-                <option value="minkowski">Minkowski</option>
-                <option value="canberra">Canberra</option>
-                <option value="pearson">Pearson</option>
-            </select>
-
-            <h3>Threshold:</h3>
-            <input id="dtwThreshold" type="range" min="0.1" max="0.5" step="0.01" value="0.20">
-            <span id="thresholdValue">0.20</span>
-
             <div class="hListText">
                 <div>
                     <p id="pTitle">Cents</p>
@@ -88,21 +72,44 @@
                 </div>
             </div>
         </div>
+        <div class="hList">
+            <h3 id="pTitle">Detection Method:</h3>
+            <button id="detectionMethod">Polyphony</button>
+
+            <h3>DTW Method:</h3>
+            <select id="dtwMethod">
+                <option value="cosine">Cosine</option>
+                <option value="ssd">SSD</option>
+                <option value="euclidean">Euclidean</option>
+                <option value="manhattan">Manhattan</option>
+                <option value="chebyshev">Chebyshev</option>
+                <option value="minkowski">Minkowski</option>
+                <option value="canberra">Canberra</option>
+                <option value="pearson">Pearson</option>
+            </select>
+
+            <h3>Threshold:</h3>
+            <input id="dtwThreshold" type="range" min="0.1" max="0.5" step="0.01" value="0.22">
+            <span id="thresholdValue">0.22</span>
+        </div>
     </details>
 
     <!-- Score, Controls and Expected Notes -->
     <div class="hListStick">
-        <div class="notes" >
+        <div class="notes">
             <h3>Expected Notes</h3>
             <div id="expectedNotes">
                 <p>-</p>
             </div>
         </div>
-        
-        <div class="hListText">
-            <div id="chromaContainer"></div>
+        <div style="align-self: center;">
+            <div class="hListText">
+                <div id="chromaContainer"></div>
+            </div>
+            <div class="hListText" style="padding-top: 3px;">
+                <div id="scoreChromaContainer"></div>
+            </div>
         </div>
-
         <div class="notes">
             <h3>Detected Notes</h3>
             <div id="detectedNotes">
@@ -125,20 +132,21 @@
         <button id="zoomp" type="button" style="font-weight: bolder;">+</button>
 
         <h3>Cursor:</h3>
-        <button id="prev" style="font-weight: bolder;"><</button>
-        <button id="reset">Reset</button>
-        <button id="next" style="font-weight: bolder;">></button>
+        <button id="prev" style="font-weight: bolder;">
+            < </button>
+                <button id="reset">Reset</button>
+                <button id="next" style="font-weight: bolder;">></button>
 
-        <h3>Audio:</h3>
-        <button id="audioListen" hidden>Listen</button>
-        <button id="audioStart" class="primary">Start</button>
-        <button id="audioStop" hidden>Stop</button>
+                <h3>Audio:</h3>
+                <button id="audioListen" hidden>Listen</button>
+                <button id="audioStart" class="primary">Start</button>
+                <button id="audioStop" hidden>Stop</button>
 
-        <h3>Score:</h3>
-        <div id="scoreAudioInputs">
-            <input title="Score Input" id="scoreInput" type="file"
-                accept=".musicxml, .mxl, .pdf, .png, .jpg, .mid, .midi" />
-        </div>
+                <h3>Score:</h3>
+                <div id="scoreAudioInputs">
+                    <input title="Score Input" id="scoreInput" type="file"
+                        accept=".musicxml, .mxl, .pdf, .png, .jpg, .mid, .midi" />
+                </div>
     </div>
 
 </footer>

@@ -4,11 +4,11 @@
  * the processing of the input signal into the domain graphs
  */
 
-import { compareNotes } from "/controller/compare.js";
+import { compareNotes, monophonicCompareNotes } from "/controller/compare.js";
 import { calulateCents, fastMaxMin } from "/controller/helpers.js"
 import { values } from "/model/values.js";
 import { getExpectedNotes, osmd } from "/controller/score/osmdController.js";
-import { updateChromaColors, updateMeydaRMS, updateAudioControlButtons, updateSignalData, updateInfoVisibility } from "/view/ui.js";
+import { updateChromaColors, updateMeydaRMS, updateAudioControlButtons, updateSignalData, updateInfoVisibility, getDetectionMethod } from "/view/ui.js";
 
 // let openSheetMusicDisplayInstance = null; // OSMD instance
 let audioContext = null;                  // WebAudio AudioContext
@@ -89,25 +89,40 @@ export async function startAudioProcessing() {
             }
         }
 
-        let compareNotesData = compareNotes();
-        if (values.score.expectedFreqs.length === 0) {
-            console.log("[SKIP] Rest");
-            osmd.cursor.next();
-            getExpectedNotes();
-        } else if (compareNotesData.result) {
-            consecutiveMatches++;
-            if (consecutiveMatches >= 3) { // 3 are the expected matches of the audio to the score so it doesnt accidently update ntoe as often
-                // console.log("[COMPARE] Match");
-                console.log(
-                    `[DTW] method=${compareNotesData.method} | measure=${osmd.cursor.Iterator.CurrentMeasure.MeasureNumber} | ${compareNotesData.dist.toFixed(3)} , ${compareNotesData.norm.toFixed(3)} | threshold=${compareNotesData.threshold} | consecutiveMatches=${consecutiveMatches}`
-                );
+        let detectionMethod = getDetectionMethod();
 
+        if (detectionMethod == "Monophony") {
+            if (values.score.expectedFreqs.length === 0) {
+                console.log("[SKIP] Rest");
                 osmd.cursor.next();
                 getExpectedNotes();
-                consecutiveMatches = 0;
+            } else if (monophonicCompareNotes()) {
+                console.log("[COMPARE] Match");
+                osmd.cursor.next();
+                getExpectedNotes();
             }
         } else {
-            consecutiveMatches = 0;
+            let compareNotesData = compareNotes();
+
+            if (values.score.expectedFreqs.length === 0) {
+                console.log("[SKIP] Rest");
+                osmd.cursor.next();
+                getExpectedNotes();
+            } else if (compareNotesData.result) {
+                consecutiveMatches++;
+                if (consecutiveMatches >= 3) { // 3 are the expected matches of the audio to the score so it doesnt accidently update ntoe as often
+                    // console.log("[COMPARE] Match");
+                    console.log(
+                        `[DTW] method=${compareNotesData.method} | measure=${osmd.cursor.Iterator.CurrentMeasure.MeasureNumber} | ${compareNotesData.dist.toFixed(3)} , ${compareNotesData.norm.toFixed(3)} | threshold=${compareNotesData.threshold} | consecutiveMatches=${consecutiveMatches}`
+                    );
+
+                    osmd.cursor.next();
+                    getExpectedNotes();
+                    consecutiveMatches = 0;
+                }
+            } else {
+                consecutiveMatches = 0;
+            }
         }
 
         updateSignalData({ frequency: values.audio.frequency, rms: values.audio.rms, cents: values.audio.cents });

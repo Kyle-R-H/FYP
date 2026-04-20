@@ -72,7 +72,7 @@ details .hList {
     gap: 8px;
 }
 
-details .hList .hListText #pTitle {
+details .hList .hListText .pTitle {
     font-weight: bolder;
 }
 
@@ -147,6 +147,21 @@ details .hList .hListText #pTitle {
 .chromaBox {
     width: 40px;
     height: 40px;
+    background-color: white;
+    border: 1px solid #ccc;
+    text-align: center;
+    align-content: center;
+    font-weight: bolder;
+}
+
+#scoreChromaContainer {
+    display: flex;
+    gap: 2px;
+}
+
+.scoreChromaBox {
+    width: 40px;
+    height: 5px;
     background-color: white;
     border: 1px solid #ccc;
     text-align: center;
