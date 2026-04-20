@@ -153,7 +153,7 @@ export function compareNotes() {
         return false;
     }
 
-    console.log("[COMPARE] Expected chroma:", expectedChroma);
+    // console.log("[COMPARE] Expected chroma:", expectedChroma);
     // console.log("[COMPARE] Last detected chroma:", detectedChromaHistory[detectedChromaHistory.length - 1]);
 
     const expectedChromaHistory = detectedChromaHistory.map(() => [...expectedChroma]);
