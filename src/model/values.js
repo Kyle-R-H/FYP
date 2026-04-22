@@ -12,6 +12,6 @@ export const values = {
     },
     dtw: {
         method: "cosine",
-        threshold: 0.22
+        threshold: 0.23
     }
 }
