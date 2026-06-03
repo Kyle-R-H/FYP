@@ -1,10 +1,12 @@
-# FYP
+# Live Audio-to-Score Polyphony
+> Previously titled "FYP"
+
 Real-time Interactive Music Score Tracking Using Live Microphone Input
 
 ## Scores
 Public Domain Scores: https://github.com/musetrainer/library/tree/master
 
-## Layout
+## System Structure
 ```
 project/
 ├── input/
